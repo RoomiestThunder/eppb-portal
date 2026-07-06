@@ -21,20 +21,15 @@ type Action =
   | { action: "createField"; payload: { stepId: string; key: string; label: string; type: string } }
   | { action: "updateField"; payload: { id: string; data: Record<string, unknown> } }
   | { action: "deleteField"; payload: { id: string } }
-  | { action: "reorder"; payload: { type: "stage" | "step" | "field"; ids: string[] } }
   | { action: "createLookup"; payload: { code: string; name: string } }
   | { action: "deleteLookup"; payload: { id: string } }
   | { action: "createLookupItem"; payload: { lookupId: string; value: string; label: string } }
-  | { action: "updateLookupItem"; payload: { id: string; data: Record<string, unknown> } }
   | { action: "deleteLookupItem"; payload: { id: string } }
   | { action: "createAnalyticsMaterial"; payload: Record<string, unknown> }
-  | { action: "updateAnalyticsMaterial"; payload: { id: string; data: Record<string, unknown> } }
   | { action: "deleteAnalyticsMaterial"; payload: { id: string } }
   | { action: "createProject"; payload: Record<string, unknown> }
-  | { action: "updateProject"; payload: { id: string; data: Record<string, unknown> } }
   | { action: "deleteProject"; payload: { id: string } }
   | { action: "createResourceItem"; payload: Record<string, unknown> }
-  | { action: "updateResourceItem"; payload: { id: string; data: Record<string, unknown> } }
   | { action: "deleteResourceItem"; payload: { id: string } };
 
 export async function POST(req: NextRequest) {
@@ -126,12 +121,6 @@ export async function POST(req: NextRequest) {
       await prisma.formField.delete({ where: { id: body.payload.id } });
       return NextResponse.json({ ok: true });
     }
-    case "reorder": {
-      const { type, ids } = body.payload;
-      const model = type === "stage" ? prisma.serviceStage : type === "step" ? prisma.serviceStep : prisma.formField;
-      await Promise.all(ids.map((id, idx) => (model as typeof prisma.formField).update({ where: { id }, data: { order: idx + 1 } })));
-      return NextResponse.json({ ok: true });
-    }
     case "createLookup": {
       const lookup = await prisma.lookup.create({ data: { code: body.payload.code, name: body.payload.name } });
       return NextResponse.json({ id: lookup.id });
@@ -147,10 +136,6 @@ export async function POST(req: NextRequest) {
       });
       return NextResponse.json({ id: item.id });
     }
-    case "updateLookupItem": {
-      await prisma.lookupItem.update({ where: { id: body.payload.id }, data: body.payload.data });
-      return NextResponse.json({ ok: true });
-    }
     case "deleteLookupItem": {
       await prisma.lookupItem.delete({ where: { id: body.payload.id } });
       return NextResponse.json({ ok: true });
@@ -158,10 +143,6 @@ export async function POST(req: NextRequest) {
     case "createAnalyticsMaterial": {
       const item = await prisma.analyticsMaterial.create({ data: body.payload as never });
       return NextResponse.json({ id: item.id });
-    }
-    case "updateAnalyticsMaterial": {
-      await prisma.analyticsMaterial.update({ where: { id: body.payload.id }, data: body.payload.data as never });
-      return NextResponse.json({ ok: true });
     }
     case "deleteAnalyticsMaterial": {
       await prisma.analyticsMaterial.delete({ where: { id: body.payload.id } });
@@ -171,10 +152,6 @@ export async function POST(req: NextRequest) {
       const item = await prisma.project.create({ data: body.payload as never });
       return NextResponse.json({ id: item.id });
     }
-    case "updateProject": {
-      await prisma.project.update({ where: { id: body.payload.id }, data: body.payload.data as never });
-      return NextResponse.json({ ok: true });
-    }
     case "deleteProject": {
       await prisma.project.delete({ where: { id: body.payload.id } });
       return NextResponse.json({ ok: true });
@@ -182,10 +159,6 @@ export async function POST(req: NextRequest) {
     case "createResourceItem": {
       const item = await prisma.resourceItem.create({ data: body.payload as never });
       return NextResponse.json({ id: item.id });
-    }
-    case "updateResourceItem": {
-      await prisma.resourceItem.update({ where: { id: body.payload.id }, data: body.payload.data as never });
-      return NextResponse.json({ ok: true });
     }
     case "deleteResourceItem": {
       await prisma.resourceItem.delete({ where: { id: body.payload.id } });
