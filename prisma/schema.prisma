@@ -1,0 +1,261 @@
+// EPPB — Единый портал поддержки бизнеса
+// Domain model for the universal no-code/low-code service constructor
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Identity ----------
+
+enum UserRole {
+  CLIENT
+  ADMIN
+  AUTHOR // business-analyst / service author, no dev needed
+}
+
+model User {
+  id           String        @id @default(cuid())
+  role         UserRole      @default(CLIENT)
+  fullName     String
+  iin          String? // mock eGov IDP identity number
+  bin          String? // for legal entities
+  email        String?       @unique
+  phone        String?
+  createdAt    DateTime      @default(now())
+  applications Application[]
+  notifications Notification[]
+}
+
+// ---------- Organizations (Holding + subsidiaries) ----------
+
+model Organization {
+  id                String              @id @default(cuid())
+  code              String              @unique
+  name              String
+  shortName         String
+  logoColor         String              @default("#0B5FFF")
+  services          Service[]
+  analyticsMaterials AnalyticsMaterial[]
+  projects          Project[]
+}
+
+// ---------- Reference data (справочники) ----------
+
+model Lookup {
+  id        String       @id @default(cuid())
+  code      String       @unique // e.g. "regions", "wagon_types"
+  name      String
+  items     LookupItem[]
+}
+
+model LookupItem {
+  id       String @id @default(cuid())
+  lookupId String
+  lookup   Lookup @relation(fields: [lookupId], references: [id], onDelete: Cascade)
+  value    String // machine key
+  label    String // human label
+  order    Int    @default(0)
+  meta     String? // JSON blob for extra attrs (e.g. coordinates, rate)
+}
+
+// ---------- Universal service constructor ----------
+
+enum ServiceStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Service {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  name           String
+  shortDescription String
+  fullDescription  String @default("")
+  category       String // e.g. "Лизинг", "Кредитование", "Субсидирование"
+  icon           String  @default("Briefcase")
+  status         ServiceStatus @default(DRAFT)
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  complexity     String        @default("simple") // simple | multi-stage
+  tags           String        @default("") // comma separated
+  stages         ServiceStage[]
+  applications   Application[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+// A stage = a phase of the client journey, e.g. "Первичная заявка" then "Расширенные данные"
+model ServiceStage {
+  id          String   @id @default(cuid())
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  order       Int
+  title       String
+  description String   @default("")
+  steps       ServiceStep[]
+}
+
+// A step = one screen/page of the wizard within a stage
+model ServiceStep {
+  id          String   @id @default(cuid())
+  stageId     String
+  stage       ServiceStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  order       Int
+  title       String
+  description String   @default("")
+  fields      FormField[]
+}
+
+enum FieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  DATE
+  SELECT
+  RADIO
+  CHECKBOX
+  LOOKUP // reference data driven select
+  FILE
+  CALCULATED
+  INFO // static hint/info block, non-input
+}
+
+model FormField {
+  id            String    @id @default(cuid())
+  stepId        String
+  step          ServiceStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  order         Int
+  key           String // machine name, unique within service
+  label         String
+  hint          String    @default("")
+  type          FieldType
+  required      Boolean   @default(false)
+  options       String    @default("") // JSON array for SELECT/RADIO static options
+  lookupCode    String?   // for LOOKUP type fields
+  formula       String?   // for CALCULATED type, JS-like expression referencing other field keys
+  visibilityRule String?  // JSON condition tree; null = always visible
+  validation    String?   // JSON: {min,max,pattern,minLength,maxLength}
+  prefillSource String?   // mock source key e.g. "egov.fullName", "egov.bin"
+}
+
+// ---------- Applications (Заявки) ----------
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  ADDITIONAL_INFO_REQUIRED
+  APPROVED
+  REJECTED
+}
+
+model Application {
+  id          String   @id @default(cuid())
+  number      String   @unique
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  status      ApplicationStatus @default(DRAFT)
+  data        String   @default("{}") // JSON of all field values keyed by field key
+  currentStageOrder Int @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  history     ApplicationEvent[]
+  documents   ApplicationDocument[]
+}
+
+model ApplicationEvent {
+  id            String   @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  type          String // status_change | comment | integration
+  message       String
+  createdAt     DateTime @default(now())
+}
+
+model ApplicationDocument {
+  id            String   @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fieldKey      String
+  fileName      String
+  mockUrl       String   @default("#")
+  signedEsign   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ---------- Analytics reporting module ----------
+
+model AnalyticsMaterial {
+  id             String   @id @default(cuid())
+  title          String
+  description    String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  materialType   String   // portal | report | financial | research | dashboard
+  source         String
+  period         String
+  linkUrl        String
+  embeddable     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+}
+
+// ---------- Interactive project map ----------
+
+model Project {
+  id             String   @id @default(cuid())
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  region         String
+  locality       String
+  lat            Float
+  lng            Float
+  industry       String
+  amount         Float
+  currency       String  @default("KZT")
+  status         String  // planned | financing | active | completed
+  periodStart    String
+  periodEnd      String
+  description    String
+}
+
+// ---------- Useful materials / tools for entrepreneurs ----------
+
+model ResourceItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String   // knowledge_base | template | checklist | calculator | guide
+  linkUrl     String   @default("#")
+  createdAt   DateTime @default(now())
+}
+
+// ---------- Mock integration log (proves integration-readiness) ----------
+
+model IntegrationLog {
+  id          String   @id @default(cuid())
+  connector   String   // egov_idp | iin_bin_check | esign | bpm_submit | bpm_status | doc_exchange | notify_sms
+  direction   String   // request | response
+  payload     String   // JSON
+  status      String   // ok | error
+  createdAt   DateTime @default(now())
+}
