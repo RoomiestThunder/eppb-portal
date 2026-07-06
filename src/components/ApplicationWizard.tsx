@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { computeVisibleFieldsWithCalculations, type FieldLike } from "@/lib/ruleEngine";
 import { checkApplicationCompleteness } from "@/lib/ai";
@@ -43,13 +43,20 @@ export default function ApplicationWizard({
   const router = useRouter();
   const allFields = useMemo(() => steps.flatMap((s) => s.fields), [steps]);
 
-  const [formData, setFormData] = useState<Record<string, unknown>>(() => ({ ...(initialData ?? {}) }));
+  const [formData, setFormData] = useState<Record<string, unknown>>(() => {
+    const initial = { ...(initialData ?? {}) };
+    if (profile.bin) {
+      const binKeys = steps.flatMap((s) => s.fields).filter((f) => f.prefillSource === "egov.bin").map((f) => f.key);
+      for (const key of binKeys) if (!initial[key]) initial[key] = profile.bin;
+    }
+    return initial;
+  });
   const [stepIndex, setStepIndex] = useState(0);
   const [errors, setErrors] = useState<string[]>([]);
   const [aiIssues, setAiIssues] = useState<string[] | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ number: string } | null>(null);
-  const [binLookupDone, setBinLookupDone] = useState(false);
+  const binLookupFired = useRef(false);
 
   const { visible, enrichedData } = useMemo(() => computeVisibleFieldsWithCalculations(allFields, formData), [allFields, formData]);
   const visibleIds = useMemo(() => new Set(visible.map((f) => f.id)), [visible]);
@@ -87,20 +94,16 @@ export default function ApplicationWizard({
     [companyNameFieldKeys]
   );
 
-  // Auto-prefill from mock eGov IDP profile on first load
+  // Company name lookup based on the BIN already seeded into formData above — fires once.
   useEffect(() => {
-    if (binLookupDone) return;
+    if (binLookupFired.current) return;
     if (binFieldKeys.length > 0 && profile.bin) {
-      setFormData((prev) => {
-        const next = { ...prev };
-        for (const key of binFieldKeys) if (!next[key]) next[key] = profile.bin as string;
-        return next;
-      });
+      binLookupFired.current = true;
+      // setState happens inside runBinLookup only after the fetch resolves, not synchronously here.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       runBinLookup(profile.bin);
-      setBinLookupDone(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [binFieldKeys, profile.bin, binLookupDone]);
+  }, [binFieldKeys, profile.bin, runBinLookup]);
 
   function setValue(key: string, value: unknown) {
     setFormData((prev) => ({ ...prev, [key]: value }));

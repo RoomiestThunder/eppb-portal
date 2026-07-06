@@ -50,7 +50,7 @@ async function main() {
   });
 
   // ---------------- Lookups (справочники) ----------------
-  const regions = await prisma.lookup.create({
+  await prisma.lookup.create({
     data: {
       code: "regions",
       name: "Регионы Казахстана",
@@ -76,7 +76,7 @@ async function main() {
     },
   });
 
-  const wagonTypes = await prisma.lookup.create({
+  await prisma.lookup.create({
     data: {
       code: "wagon_types",
       name: "Типы вагонов",
@@ -92,7 +92,7 @@ async function main() {
     },
   });
 
-  const livestockTypes = await prisma.lookup.create({
+  await prisma.lookup.create({
     data: {
       code: "livestock_types",
       name: "Виды животноводства",
