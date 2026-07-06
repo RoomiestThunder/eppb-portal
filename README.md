@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ЕППБ — Единый портал поддержки бизнеса
 
-## Getting Started
+MVP цифровой платформы для конкурсной задачи AstanaHub: универсальный
+no-code/low-code конструктор услуг, форм и клиентских сценариев поверх
+которого собран полноценный клиентский путь предпринимателя — от поиска
+меры поддержки до подачи заявки и сопровождения в личном кабинете.
 
-First, run the development server:
+Архитектурный подход подробно описан в [architecture.md](./architecture.md).
+Инструкции по деплою — в [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+## Что внутри
+
+- Главная страница, каталог и карточка услуги
+- No-code конструктор услуг (этапы → шаги → поля, условия ветвления, расчётные поля, справочники)
+- Пошаговый клиентский визард, читающий ту же схему, что и конструктор
+- Личный кабинет предпринимателя (заявки, статусы, документы, уведомления)
+- AI-помощник (подбор услуги, объяснение простым языком, проверка полноты заявки, черновик структуры услуги для автора)
+- Модуль аналитической отчетности дочерних организаций
+- Интерактивная карта профинансированных проектов
+- Раздел инструментов для бизнеса (база знаний, шаблоны, чек-листы, калькуляторы)
+- Mock-интеграции (eGov IDP, ИИН/БИН, ЭЦП, BPM, уведомления) с журналом вызовов
+
+Два контрольных кейса — «Приобретение вагонов в лизинг» и «Субсидирование
+животноводства» — полностью собраны через конструктор (см. `prisma/seed.ts`),
+без отдельного кода под каждую услугу.
+
+## Запуск локально
 
 ```bash
+npm install
+npx prisma migrate dev
+npm run seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Откройте http://localhost:3000. Вход в личный кабинет / админ-панель — через
+кнопку «Войти» в шапке (демо-имитация eGov IDP, без пароля): предприниматель,
+автор услуг или администратор.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Технологии
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js (App Router) · TypeScript · Tailwind CSS · Prisma + SQLite ·
+Leaflet/react-leaflet · lucide-react
