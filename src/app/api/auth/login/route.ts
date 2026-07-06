@@ -1,0 +1,27 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getOrCreateDemoUser, SESSION_COOKIE, Session } from "@/lib/session";
+import { mockEgovIdpLookup } from "@/lib/integrations";
+
+export async function POST(req: NextRequest) {
+  const { role } = (await req.json()) as { role: Session["role"] };
+  if (!["CLIENT", "ADMIN", "AUTHOR"].includes(role)) {
+    return NextResponse.json({ error: "invalid role" }, { status: 400 });
+  }
+
+  if (role === "CLIENT") {
+    // demonstrate eGov IDP auth mock on entry to the client journey
+    await mockEgovIdpLookup("900101300123");
+  }
+
+  const user = await getOrCreateDemoUser(role);
+  const session: Session = { userId: user.id, role, fullName: user.fullName };
+
+  const res = NextResponse.json({ ok: true, session });
+  res.cookies.set(SESSION_COOKIE, JSON.stringify(session), {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+  return res;
+}
