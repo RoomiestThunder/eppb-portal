@@ -4,12 +4,14 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { toWizardField } from "@/lib/wizardMapper";
 import { decryptString } from "@/lib/crypto";
+import { getLocale, pickLocalized } from "@/lib/i18n";
 import ApplicationWizard from "@/components/ApplicationWizard";
 import LoginPrompt from "@/components/LoginPrompt";
 
 export default async function ApplyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const session = await getSession();
+  const locale = await getLocale();
 
   const service = await prisma.service.findUnique({
     where: { slug },
@@ -43,7 +45,9 @@ export default async function ApplyPage({ params }: { params: Promise<{ slug: st
     new Set(stage.steps.flatMap((s) => s.fields.filter((f) => f.lookupCode).map((f) => f.lookupCode as string)))
   );
   const lookupRows = await prisma.lookup.findMany({ where: { code: { in: lookupCodes } }, include: { items: { orderBy: { order: "asc" } } } });
-  const lookups = Object.fromEntries(lookupRows.map((l) => [l.code, l.items.map((i) => ({ value: i.value, label: i.label }))]));
+  const lookups = Object.fromEntries(
+    lookupRows.map((l) => [l.code, l.items.map((i) => ({ value: i.value, label: pickLocalized(i.label, i.labelKk, locale) }))])
+  );
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
 
@@ -58,13 +62,13 @@ export default async function ApplyPage({ params }: { params: Promise<{ slug: st
       <ApplicationWizard
         serviceId={service.id}
         serviceSlug={service.slug}
-        serviceName={service.name}
+        serviceName={pickLocalized(service.name, service.nameKk, locale)}
         stageTitle={`Этап 1. ${stage.title}`}
         steps={stage.steps.map((s) => ({
           id: s.id,
           title: s.title,
           description: s.description,
-          fields: s.fields.map(toWizardField),
+          fields: s.fields.map((f) => toWizardField(f, locale)),
         }))}
         lookups={lookups}
         profile={{ bin: user?.bin ?? null, iin: user?.iin ?? null, fullName: user?.fullName ?? "" }}

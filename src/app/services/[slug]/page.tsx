@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import ServiceIcon from "@/components/ServiceIcon";
+import { getLocale, pickLocalized } from "@/lib/i18n";
 
 export default async function ServiceCardPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const locale = await getLocale();
   const service = await prisma.service.findUnique({
     where: { slug },
     include: {
@@ -41,8 +43,10 @@ export default async function ServiceCardPage({ params }: { params: Promise<{ sl
               <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">многоэтапная услуга</span>
             )}
           </div>
-          <h1 className="mt-3 text-2xl font-bold text-slate-900">{service.name}</h1>
-          <p className="mt-2 text-slate-600">{service.fullDescription || service.shortDescription}</p>
+          <h1 className="mt-3 text-2xl font-bold text-slate-900">{pickLocalized(service.name, service.nameKk, locale)}</h1>
+          <p className="mt-2 text-slate-600">
+            {pickLocalized(service.fullDescription || service.shortDescription, service.fullDescriptionKk || service.shortDescriptionKk, locale)}
+          </p>
 
           <div className="mt-6 flex flex-wrap gap-6 text-sm text-slate-500">
             <span>📝 {totalSteps} {totalSteps === 1 ? "шаг" : "шагов"} в {service.stages.length} {service.stages.length === 1 ? "этапе" : "этапах"}</span>

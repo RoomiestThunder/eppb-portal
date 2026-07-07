@@ -1,7 +1,8 @@
 import type { FormField } from "@/generated/prisma";
 import type { WizardField } from "@/components/ApplicationWizard";
+import { pickLocalized, type Locale } from "@/lib/i18n";
 
-export function toWizardField(f: FormField): WizardField {
+export function toWizardField(f: FormField, locale: Locale = "ru"): WizardField {
   let options: string[] = [];
   try {
     options = f.options ? JSON.parse(f.options) : [];
@@ -17,8 +18,8 @@ export function toWizardField(f: FormField): WizardField {
   return {
     id: f.id,
     key: f.key,
-    label: f.label,
-    hint: f.hint,
+    label: pickLocalized(f.label, f.labelKk, locale),
+    hint: pickLocalized(f.hint, f.hintKk, locale),
     type: f.type,
     required: f.required,
     options,

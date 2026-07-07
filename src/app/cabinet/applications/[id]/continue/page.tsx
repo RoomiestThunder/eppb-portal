@@ -4,12 +4,14 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { toWizardField } from "@/lib/wizardMapper";
 import { decryptString } from "@/lib/crypto";
+import { getLocale, pickLocalized } from "@/lib/i18n";
 import ApplicationWizard from "@/components/ApplicationWizard";
 
 export default async function ContinueApplicationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getSession();
   if (!session) notFound();
+  const locale = await getLocale();
 
   const app = await prisma.application.findUnique({
     where: { id },
@@ -43,7 +45,9 @@ export default async function ContinueApplicationPage({ params }: { params: Prom
     new Set(nextStage.steps.flatMap((s) => s.fields.filter((f) => f.lookupCode).map((f) => f.lookupCode as string)))
   );
   const lookupRows = await prisma.lookup.findMany({ where: { code: { in: lookupCodes } }, include: { items: { orderBy: { order: "asc" } } } });
-  const lookups = Object.fromEntries(lookupRows.map((l) => [l.code, l.items.map((i) => ({ value: i.value, label: i.label }))]));
+  const lookups = Object.fromEntries(
+    lookupRows.map((l) => [l.code, l.items.map((i) => ({ value: i.value, label: pickLocalized(i.label, i.labelKk, locale) }))])
+  );
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   const initialData = JSON.parse(decryptString(app.data)) as Record<string, unknown>;
@@ -57,13 +61,13 @@ export default async function ContinueApplicationPage({ params }: { params: Prom
         <ApplicationWizard
           serviceId={app.serviceId}
           serviceSlug={app.service.slug}
-          serviceName={app.service.name}
+          serviceName={pickLocalized(app.service.name, app.service.nameKk, locale)}
           stageTitle={`Этап ${nextStage.order}. ${nextStage.title}`}
           steps={nextStage.steps.map((s) => ({
             id: s.id,
             title: s.title,
             description: s.description,
-            fields: s.fields.map(toWizardField),
+            fields: s.fields.map((f) => toWizardField(f, locale)),
           }))}
           lookups={lookups}
           profile={{ bin: user?.bin ?? null, iin: user?.iin ?? null, fullName: user?.fullName ?? "" }}

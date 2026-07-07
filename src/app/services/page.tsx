@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ServiceIcon from "@/components/ServiceIcon";
+import { getLocale, pickLocalized } from "@/lib/i18n";
 
 export default async function ServicesCatalogPage({
   searchParams,
@@ -8,6 +9,7 @@ export default async function ServicesCatalogPage({
   searchParams: Promise<{ q?: string; category?: string; org?: string }>;
 }) {
   const { q, category, org } = await searchParams;
+  const locale = await getLocale();
 
   const services = await prisma.service.findMany({
     where: { status: "PUBLISHED" },
@@ -89,8 +91,8 @@ export default async function ServicesCatalogPage({
                 </span>
               )}
             </div>
-            <h3 className="mt-3 font-semibold text-slate-900 group-hover:text-brand">{s.name}</h3>
-            <p className="mt-1 flex-1 text-sm text-slate-500">{s.shortDescription}</p>
+            <h3 className="mt-3 font-semibold text-slate-900 group-hover:text-brand">{pickLocalized(s.name, s.nameKk, locale)}</h3>
+            <p className="mt-1 flex-1 text-sm text-slate-500">{pickLocalized(s.shortDescription, s.shortDescriptionKk, locale)}</p>
             <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
               <span
                 className="rounded-full px-2 py-1 font-medium text-white"
