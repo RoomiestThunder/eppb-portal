@@ -1,4 +1,5 @@
 import { PrismaClient, FieldType } from "../src/generated/prisma";
+import { encryptString } from "../src/lib/crypto";
 
 const prisma = new PrismaClient();
 
@@ -9,6 +10,8 @@ function cond(field: string, op: string, value?: unknown) {
 async function main() {
   console.log("Seeding EPPB demo data...");
 
+  await prisma.auditLog.deleteMany();
+  await prisma.outboxEvent.deleteMany();
   await prisma.applicationEvent.deleteMany();
   await prisma.applicationDocument.deleteMany();
   await prisma.notification.deleteMany();
@@ -23,8 +26,9 @@ async function main() {
   await prisma.project.deleteMany();
   await prisma.resourceItem.deleteMany();
   await prisma.integrationLog.deleteMany();
-  await prisma.organization.deleteMany();
+  await prisma.counter.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.organization.deleteMany();
 
   // ---------------- Organizations ----------------
   const byterek = await prisma.organization.create({
@@ -592,30 +596,42 @@ async function main() {
     },
   });
   await prisma.user.create({
-    data: { role: "ADMIN", fullName: "Администратор портала", email: "admin@demo.kz" },
+    data: { role: "SUPERADMIN", fullName: "Суперадминистратор платформы", email: "superadmin@demo.kz" },
   });
   await prisma.user.create({
-    data: { role: "AUTHOR", fullName: "Бизнес-аналитик (автор услуг)", email: "author@demo.kz" },
+    data: { role: "ORG_ADMIN", fullName: "Администратор услуг (БРК)", email: "orgadmin@demo.kz", organizationId: kdb.id },
   });
+  await prisma.user.create({
+    data: { role: "AUTHOR", fullName: "Бизнес-аналитик (автор услуг, БРК)", email: "author@demo.kz", organizationId: kdb.id },
+  });
+  await prisma.user.create({
+    data: { role: "ANALYST", fullName: "Аналитик (только чтение)", email: "analyst@demo.kz" },
+  });
+
+  // Seed the application-number counter so the first real submission continues after this demo app.
+  await prisma.counter.create({ data: { id: "application_number_2026", value: 1 } });
 
   // demo submitted application to populate personal cabinet
   const demoApp = await prisma.application.create({
     data: {
       number: "EPPB-2026-000001",
       serviceId: livestockService.id,
+      serviceVersion: livestockService.version,
       userId: client.id,
       status: "IN_REVIEW",
       currentStageOrder: 1,
-      data: JSON.stringify({
-        applicant_bin: "970340000455",
-        farm_name: 'КХ "Серіков и Ко"',
-        region: "akmola",
-        livestock_type: "cattle_beef",
-        livestock_count: 120,
-        rate_per_head: 45000,
-        subsidy_amount: 5400000,
-        has_veterinary_certificate: "true",
-      }),
+      data: encryptString(
+        JSON.stringify({
+          applicant_bin: "970340000455",
+          farm_name: 'КХ "Серіков и Ко"',
+          region: "akmola",
+          livestock_type: "cattle_beef",
+          livestock_count: 120,
+          rate_per_head: 45000,
+          subsidy_amount: 5400000,
+          has_veterinary_certificate: "true",
+        })
+      ),
       history: {
         create: [
           { type: "status_change", message: "Заявка подана" },
