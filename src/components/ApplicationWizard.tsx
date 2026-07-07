@@ -57,6 +57,9 @@ export default function ApplicationWizard({
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ number: string } | null>(null);
   const binLookupFired = useRef(false);
+  // One key per wizard mount — a duplicate submit (double-click, retry after a dropped response)
+  // reuses the same key so the server returns the existing application instead of creating another.
+  const idempotencyKey = useRef(crypto.randomUUID());
 
   const { visible, enrichedData } = useMemo(() => computeVisibleFieldsWithCalculations(allFields, formData), [allFields, formData]);
   const visibleIds = useMemo(() => new Set(visible.map((f) => f.id)), [visible]);
@@ -158,7 +161,7 @@ export default function ApplicationWizard({
       const res = await fetch("/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceId, data: enrichedData, applicationId, targetStageOrder }),
+        body: JSON.stringify({ serviceId, data: enrichedData, applicationId, targetStageOrder, idempotencyKey: idempotencyKey.current }),
       });
       if (!res.ok) throw new Error("submit failed");
       const data = await res.json();

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { toWizardField } from "@/lib/wizardMapper";
+import { decryptString } from "@/lib/crypto";
 import ApplicationWizard from "@/components/ApplicationWizard";
 
 export default async function ContinueApplicationPage({ params }: { params: Promise<{ id: string }> }) {
@@ -45,7 +46,7 @@ export default async function ContinueApplicationPage({ params }: { params: Prom
   const lookups = Object.fromEntries(lookupRows.map((l) => [l.code, l.items.map((i) => ({ value: i.value, label: i.label }))]));
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
-  const initialData = JSON.parse(app.data) as Record<string, unknown>;
+  const initialData = JSON.parse(decryptString(app.data)) as Record<string, unknown>;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { STATUS_LABELS, STATUS_STYLES } from "@/lib/statusLabels";
+import { decryptString } from "@/lib/crypto";
 
 export default async function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,7 +20,7 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
   });
   if (!app || app.userId !== session.userId) notFound();
 
-  const data = JSON.parse(app.data) as Record<string, unknown>;
+  const data = JSON.parse(decryptString(app.data)) as Record<string, unknown>;
   const canContinue = app.status === "ADDITIONAL_INFO_REQUIRED" && app.service.stages.some((s) => s.order > app.currentStageOrder);
 
   return (
