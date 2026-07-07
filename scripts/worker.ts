@@ -3,6 +3,7 @@
 // and processes them; in production, swap this loop for a real broker subscription
 // without changing anything else in the app (see src/lib/outbox.ts).
 import { processPendingOutboxEvents } from "../src/lib/outbox";
+import { logger } from "../src/lib/logger";
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -11,10 +12,10 @@ async function loop() {
     try {
       const result = await processPendingOutboxEvents();
       if (result.processed > 0 || result.failed > 0) {
-        console.log(`[worker] processed=${result.processed} failed=${result.failed}`);
+        logger.info("outbox drain tick", result);
       }
     } catch (err) {
-      console.error("[worker] error draining outbox:", err);
+      logger.error("outbox drain failed", { error: err instanceof Error ? err.message : String(err) });
     }
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }
