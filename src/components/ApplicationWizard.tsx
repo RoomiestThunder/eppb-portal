@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { CircleCheck, CircleAlert, TriangleAlert } from "lucide-react";
 import { computeVisibleFieldsWithCalculations, type FieldLike } from "@/lib/ruleEngine";
 import { checkApplicationCompleteness } from "@/lib/ai";
 
@@ -244,7 +245,7 @@ export default function ApplicationWizard({
       <p className="text-sm text-slate-400">{serviceName} · {stageTitle}</p>
       <div className="mt-2 flex items-center gap-2">
         {steps.map((s, i) => (
-          <div key={s.id} className={`h-1.5 flex-1 rounded-full ${i <= stepIndex ? "bg-brand" : "bg-slate-200"}`} />
+          <div key={s.id} className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${i <= stepIndex ? "bg-brand" : "bg-slate-200"}`} />
         ))}
       </div>
       <p className="mt-2 flex items-center justify-between text-xs text-slate-400">
@@ -257,52 +258,67 @@ export default function ApplicationWizard({
       </p>
 
       <div className="mt-4 rounded-2xl border border-black/5 bg-white p-8 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">{step.title}</h2>
-        {step.description && <p className="mt-1 text-sm text-slate-500">{step.description}</p>}
+        <div key={step.id} className="wizard-step-enter">
+          <h2 className="text-lg font-semibold text-slate-900">{step.title}</h2>
+          {step.description && <p className="mt-1 text-sm text-slate-500">{step.description}</p>}
 
-        <div className="mt-6 space-y-5">
-          {stepFields.map((f) => (
-            <FieldInput
-              key={f.id}
-              field={f}
-              value={enrichedData[f.key]}
-              onChange={(v) => setValue(f.key, v)}
-              onBlurBin={binFieldKeys.includes(f.key) ? () => runBinLookup(String(enrichedData[f.key] ?? "")) : undefined}
-              lookupItems={f.lookupCode ? lookups[f.lookupCode] ?? [] : []}
-            />
-          ))}
-        </div>
-
-        {errors.length > 0 && (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            <ul className="list-inside list-disc space-y-0.5">
-              {errors.map((e) => (
-                <li key={e}>{e}</li>
-              ))}
-            </ul>
+          <div className="mt-6 space-y-5">
+            {stepFields.map((f) => (
+              <FieldInput
+                key={f.id}
+                field={f}
+                value={enrichedData[f.key]}
+                onChange={(v) => setValue(f.key, v)}
+                onBlurBin={binFieldKeys.includes(f.key) ? () => runBinLookup(String(enrichedData[f.key] ?? "")) : undefined}
+                lookupItems={f.lookupCode ? lookups[f.lookupCode] ?? [] : []}
+              />
+            ))}
           </div>
-        )}
 
-        {stepIndex === steps.length - 1 && (
-          <div className="mt-5">
-            <button onClick={runAiCheck} className="rounded-full border border-brand/30 px-4 py-2 text-sm text-brand hover:bg-brand/5">
-              ✨ Проверить заявку с помощью AI
-            </button>
-            {aiIssues && (
-              <div className={`mt-3 rounded-xl p-4 text-sm ${aiIssues.length === 0 ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                {aiIssues.length === 0 ? (
-                  "AI-проверка: заявка выглядит полной и готова к отправке."
-                ) : (
-                  <ul className="list-inside list-disc space-y-0.5">
-                    {aiIssues.map((i) => (
-                      <li key={i}>{i}</li>
-                    ))}
-                  </ul>
-                )}
+          {errors.length > 0 && (
+            <div role="alert" aria-live="polite" className="mt-5 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2} />
+              <div>
+                <p className="font-medium">Проверьте, пожалуйста:</p>
+                <ul className="mt-1 list-inside list-disc space-y-0.5">
+                  {errors.map((e) => (
+                    <li key={e}>{e}</li>
+                  ))}
+                </ul>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+
+          {stepIndex === steps.length - 1 && (
+            <div className="mt-5">
+              <button onClick={runAiCheck} className="rounded-full border border-brand/30 px-4 py-2 text-sm text-brand hover:bg-brand/5">
+                ✨ Проверить заявку с помощью AI
+              </button>
+              {aiIssues && (
+                <div
+                  role="status"
+                  className={`mt-3 flex gap-3 rounded-xl p-4 text-sm ${aiIssues.length === 0 ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}
+                >
+                  {aiIssues.length === 0 ? (
+                    <>
+                      <CircleCheck className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2} />
+                      <p>AI-проверка: заявка выглядит полной и готова к отправке.</p>
+                    </>
+                  ) : (
+                    <>
+                      <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2} />
+                      <ul className="list-inside list-disc space-y-0.5">
+                        {aiIssues.map((i) => (
+                          <li key={i}>{i}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="mt-8 flex justify-between">
           <button
@@ -344,7 +360,8 @@ function FieldInput({
 
   if (field.type === "INFO") {
     return (
-      <div className="rounded-xl bg-blue-50 p-4 text-sm text-blue-800">
+      <div className="flex gap-3 rounded-xl bg-brand/5 p-4 text-sm text-brand-dark">
+        <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={2} />
         <p>{field.label}</p>
       </div>
     );

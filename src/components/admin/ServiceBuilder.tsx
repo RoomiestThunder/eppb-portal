@@ -211,7 +211,7 @@ export default function ServiceBuilder({
               setActiveStageId(st.id);
               setActiveStepId(st.steps[0]?.id);
             }}
-            className={`rounded-full px-4 py-2 text-sm ${st.id === activeStage?.id ? "bg-brand text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+            className={`rounded-full px-4 py-2 text-sm transition-colors ${st.id === activeStage?.id ? "bg-brand text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
           >
             Этап {st.order}. {st.title}
           </button>
@@ -240,7 +240,7 @@ export default function ServiceBuilder({
                 <button
                   key={step.id}
                   onClick={() => setActiveStepId(step.id)}
-                  className={`block w-full rounded-lg px-3 py-2 text-left text-sm ${step.id === activeStep?.id ? "bg-brand/10 text-brand" : "text-slate-600 hover:bg-slate-100"}`}
+                  className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${step.id === activeStep?.id ? "bg-brand/10 text-brand" : "text-slate-600 hover:bg-slate-100"}`}
                 >
                   {step.order}. {step.title} <span className="text-xs text-slate-400">({step.fields.length})</span>
                 </button>
@@ -256,7 +256,7 @@ export default function ServiceBuilder({
 
           {/* Fields editor */}
           {activeStep && (
-            <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+            <div key={activeStep.id} className="wizard-step-enter rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between gap-3">
                 <input
                   defaultValue={activeStep.title}
