@@ -1,6 +1,24 @@
 // Universal constructor rule engine
 // Evaluates field visibility conditions and calculated-field formulas
 // against the current application data, without using eval()/Function().
+//
+// ---------- DSL spec: visibility conditions (versioned) ----------
+// Grammar (EBNF), field/op/value stored as plain JSON:
+//
+//   condition   ::= leaf | and_or | negation
+//   leaf        ::= '{' 'field' ':' string ',' 'op' ':' comparator (',' 'value' ':' json)? '}'
+//   comparator  ::= 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'notIn' | 'contains'
+//                 | 'isEmpty' | 'isNotEmpty'
+//   and_or      ::= '{' 'op' ':' ('and' | 'or') ',' 'rules' ':' '[' condition (',' condition)* ']' '}'
+//   negation    ::= '{' 'op' ':' 'not' ',' 'rule' ':' condition '}'
+//
+// Storage envelope: `FormField.visibilityRule` holds either
+//   (a) a bare `condition` (legacy, no version tag — every row written before this envelope
+//       existed, e.g. all of prisma/seed.ts), or
+//   (b) `{ "__v": 1, "condition": <condition> }` (current format, written by the constructor UI).
+// isFieldVisible() accepts both so existing stored rules keep evaluating unchanged after a parser
+// upgrade — this is the whole point of tagging a version: a future __v: 2 can introduce breaking
+// changes to the envelope without needing a data migration for rows still on __v: 1 or untagged.
 
 export type ConditionLeaf = {
   field: string;
@@ -12,6 +30,21 @@ export type ConditionNode =
   | ConditionLeaf
   | { op: "and" | "or"; rules: ConditionNode[] }
   | { op: "not"; rule: ConditionNode };
+
+export const CONDITION_DSL_VERSION = 1;
+
+export type VersionedCondition = { __v: typeof CONDITION_DSL_VERSION; condition: ConditionNode };
+
+export function wrapCondition(condition: ConditionNode): VersionedCondition {
+  return { __v: CONDITION_DSL_VERSION, condition };
+}
+
+export function unwrapCondition(parsed: unknown): ConditionNode {
+  if (parsed && typeof parsed === "object" && "__v" in parsed && "condition" in parsed) {
+    return (parsed as VersionedCondition).condition;
+  }
+  return parsed as ConditionNode;
+}
 
 export type FormDataMap = Record<string, unknown>;
 
@@ -58,15 +91,30 @@ export function evaluateCondition(node: ConditionNode, data: FormDataMap): boole
 export function isFieldVisible(visibilityRule: string | null | undefined, data: FormDataMap): boolean {
   if (!visibilityRule) return true;
   try {
-    const parsed = JSON.parse(visibilityRule) as ConditionNode;
-    return evaluateCondition(parsed, data);
+    const node = unwrapCondition(JSON.parse(visibilityRule));
+    return evaluateCondition(node, data);
   } catch {
     return true;
   }
 }
 
-// ---------- Safe arithmetic formula evaluator ----------
-// Supports: + - * / ( ) numbers, field.identifiers, and functions sum(a,b,...), round(x), max(a,b), min(a,b)
+// ---------- DSL spec: calculated-field formulas ----------
+// Grammar (EBNF), stored verbatim as `FormField.formula`:
+//
+//   formula     ::= expression
+//   expression  ::= term (('+' | '-') term)*
+//   term        ::= factor (('*' | '/') factor)*
+//   factor      ::= '-' factor | number | identifier | call | '(' expression ')'
+//   call        ::= identifier '(' (expression (',' expression)*)? ')'
+//   identifier  ::= letter (letter | digit | '_' | '.')*   -- resolves to another field's value
+//   number      ::= digit+ ('.' digit+)?
+//
+// Built-in functions (fixed set, not user-extensible): sum(...), round(x, digits=0), max(...),
+// min(...), abs(x). No grammar version tag here (unlike conditions) because the grammar itself
+// has stayed unchanged since v1 — if it ever needs to (e.g. adding a ternary/if()), the same
+// versioning approach as conditions applies: wrap in `{ __v, formula }` and keep evaluating
+// unwrapped legacy strings as v1.
+//
 // Deliberately avoids eval()/new Function() since formulas are stored data, not trusted code.
 
 type Token =

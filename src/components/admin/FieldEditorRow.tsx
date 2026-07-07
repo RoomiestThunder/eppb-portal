@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { wrapCondition, unwrapCondition, type ConditionLeaf } from "@/lib/ruleEngine";
 
 type FieldT = {
   id: string;
@@ -52,11 +53,14 @@ export default function FieldEditorRow({
   onDelete: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const condition = safeParse<{ field: string; op: string; value?: string } | null>(field.visibilityRule, null);
+  // field.visibilityRule may be a bare legacy condition (all of prisma/seed.ts) or the current
+  // versioned envelope { __v: 1, condition } — unwrapCondition() handles both transparently.
+  const rawCondition = safeParse<unknown>(field.visibilityRule, null);
+  const condition = rawCondition ? (unwrapCondition(rawCondition) as ConditionLeaf) : null;
   const [condEnabled, setCondEnabled] = useState(!!condition);
   const [condField, setCondField] = useState(condition?.field ?? availableFields[0]?.key ?? "");
-  const [condOp, setCondOp] = useState(condition?.op ?? "eq");
-  const [condValue, setCondValue] = useState(condition?.value ?? "");
+  const [condOp, setCondOp] = useState<string>(condition?.op ?? "eq");
+  const [condValue, setCondValue] = useState(condition?.value !== undefined ? String(condition.value) : "");
 
   const optionsArr = safeParse<string[]>(field.options, []);
   const validationObj = safeParse<Record<string, number>>(field.validation, {});
@@ -66,7 +70,12 @@ export default function FieldEditorRow({
       onSave({ visibilityRule: null });
       return;
     }
-    onSave({ visibilityRule: JSON.stringify({ field: f, op, value: ["gt", "gte", "lt", "lte"].includes(op) ? Number(value) : value }) });
+    const leaf: ConditionLeaf = {
+      field: f,
+      op: op as ConditionLeaf["op"],
+      value: ["gt", "gte", "lt", "lte"].includes(op) ? Number(value) : value,
+    };
+    onSave({ visibilityRule: JSON.stringify(wrapCondition(leaf)) });
   }
 
   return (
