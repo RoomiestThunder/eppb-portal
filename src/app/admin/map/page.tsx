@@ -1,10 +1,21 @@
 import { prisma } from "@/lib/prisma";
+import { getSession, ORG_SCOPED_ROLES } from "@/lib/session";
 import ProjectManager from "@/components/admin/ProjectManager";
 
 export default async function AdminMapPage() {
+  const session = await getSession();
+  const scoped = session && ORG_SCOPED_ROLES.includes(session.role);
+
   const [projects, organizations] = await Promise.all([
-    prisma.project.findMany({ include: { organization: true }, orderBy: { name: "asc" } }),
-    prisma.organization.findMany({ orderBy: { name: "asc" } }),
+    prisma.project.findMany({
+      where: scoped ? { organizationId: session!.organizationId! } : undefined,
+      include: { organization: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.organization.findMany({
+      where: scoped ? { id: session!.organizationId! } : undefined,
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   return (

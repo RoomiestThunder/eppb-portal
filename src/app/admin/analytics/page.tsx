@@ -1,10 +1,21 @@
 import { prisma } from "@/lib/prisma";
+import { getSession, ORG_SCOPED_ROLES } from "@/lib/session";
 import AnalyticsMaterialManager from "@/components/admin/AnalyticsMaterialManager";
 
 export default async function AdminAnalyticsPage() {
+  const session = await getSession();
+  const scoped = session && ORG_SCOPED_ROLES.includes(session.role);
+
   const [materials, organizations] = await Promise.all([
-    prisma.analyticsMaterial.findMany({ include: { organization: true }, orderBy: { createdAt: "desc" } }),
-    prisma.organization.findMany({ orderBy: { name: "asc" } }),
+    prisma.analyticsMaterial.findMany({
+      where: scoped ? { organizationId: session!.organizationId! } : undefined,
+      include: { organization: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.organization.findMany({
+      where: scoped ? { id: session!.organizationId! } : undefined,
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   return (

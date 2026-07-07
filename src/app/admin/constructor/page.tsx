@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getSession, ORG_SCOPED_ROLES } from "@/lib/session";
 import CreateServiceButton from "@/components/admin/CreateServiceButton";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -10,9 +11,19 @@ const STATUS_STYLE: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = { DRAFT: "Черновик", PUBLISHED: "Опубликовано", ARCHIVED: "В архиве" };
 
 export default async function ConstructorListPage() {
+  const session = await getSession();
+  const scoped = session && ORG_SCOPED_ROLES.includes(session.role);
+
   const [services, organizations] = await Promise.all([
-    prisma.service.findMany({ include: { organization: true, stages: { include: { steps: { include: { fields: true } } } } }, orderBy: { createdAt: "desc" } }),
-    prisma.organization.findMany({ orderBy: { name: "asc" } }),
+    prisma.service.findMany({
+      where: scoped ? { organizationId: session!.organizationId! } : undefined,
+      include: { organization: true, stages: { include: { steps: { include: { fields: true } } } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.organization.findMany({
+      where: scoped ? { id: session!.organizationId! } : undefined,
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   return (

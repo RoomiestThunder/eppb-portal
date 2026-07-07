@@ -1,8 +1,15 @@
 import { prisma } from "@/lib/prisma";
+import { getSession, ORG_SCOPED_ROLES } from "@/lib/session";
+import { STATUS_LABELS } from "@/lib/statusLabels";
 import ApplicationStatusSelect from "@/components/admin/ApplicationStatusSelect";
 
 export default async function AdminApplicationsPage() {
+  const session = await getSession();
+  const scoped = session && ORG_SCOPED_ROLES.includes(session.role);
+  const readOnly = session?.role === "ANALYST";
+
   const applications = await prisma.application.findMany({
+    where: scoped ? { service: { organizationId: session!.organizationId! } } : undefined,
     include: { service: { include: { organization: true } }, user: true },
     orderBy: { createdAt: "desc" },
   });
@@ -36,7 +43,11 @@ export default async function AdminApplicationsPage() {
                 <td className="px-4 py-3">{a.service.organization.shortName}</td>
                 <td className="px-4 py-3 text-xs text-slate-400">{a.createdAt.toLocaleDateString("ru-RU")}</td>
                 <td className="px-4 py-3">
-                  <ApplicationStatusSelect id={a.id} status={a.status} />
+                  {readOnly ? (
+                    <span className="rounded-lg bg-slate-100 px-2 py-1 text-xs text-slate-600">{STATUS_LABELS[a.status]}</span>
+                  ) : (
+                    <ApplicationStatusSelect id={a.id} status={a.status} />
+                  )}
                 </td>
               </tr>
             ))}
