@@ -1,6 +1,7 @@
 import Link from "next/link";
 import RoleSwitcher from "@/components/RoleSwitcher";
 import type { Session } from "@/lib/session";
+import { ADMIN_ROLES } from "@/lib/roles";
 
 const NAV = [
   { href: "/services", label: "Каталог услуг" },
@@ -33,7 +34,7 @@ export default function Header({ session }: { session: Session | null }) {
               Личный кабинет
             </Link>
           )}
-          {(session?.role === "ADMIN" || session?.role === "AUTHOR") && (
+          {session && ADMIN_ROLES.includes(session.role) && (
             <Link href="/admin" className="hidden rounded-full bg-white/10 px-3 py-1.5 text-sm hover:bg-white/20 sm:block">
               Админ-панель
             </Link>

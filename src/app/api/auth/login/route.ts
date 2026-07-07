@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOrCreateDemoUser, SESSION_COOKIE, Session } from "@/lib/session";
+import { getOrCreateDemoUser, SESSION_COOKIE, Session, Role } from "@/lib/session";
 import { mockEgovIdpLookup } from "@/lib/integrations";
 
+const VALID_ROLES: Role[] = ["CLIENT", "SUPERADMIN", "ORG_ADMIN", "AUTHOR", "ANALYST"];
+
 export async function POST(req: NextRequest) {
-  const { role } = (await req.json()) as { role: Session["role"] };
-  if (!["CLIENT", "ADMIN", "AUTHOR"].includes(role)) {
+  const { role } = (await req.json()) as { role: Role };
+  if (!VALID_ROLES.includes(role)) {
     return NextResponse.json({ error: "invalid role" }, { status: 400 });
   }
 
@@ -14,7 +16,7 @@ export async function POST(req: NextRequest) {
   }
 
   const user = await getOrCreateDemoUser(role);
-  const session: Session = { userId: user.id, role, fullName: user.fullName };
+  const session: Session = { userId: user.id, role, fullName: user.fullName, organizationId: user.organizationId };
 
   const res = NextResponse.json({ ok: true, session });
   res.cookies.set(SESSION_COOKIE, JSON.stringify(session), {

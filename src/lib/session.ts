@@ -1,12 +1,17 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { ORG_SCOPED_ROLES, type Role } from "@/lib/roles";
+
+export type { Role } from "@/lib/roles";
+export { ADMIN_ROLES, WRITE_ROLES, ORG_SCOPED_ROLES } from "@/lib/roles";
 
 const COOKIE_NAME = "eppb_session";
 
 export type Session = {
   userId: string;
-  role: "CLIENT" | "ADMIN" | "AUTHOR";
+  role: Role;
   fullName: string;
+  organizationId: string | null;
 };
 
 export async function getSession(): Promise<Session | null> {
@@ -20,11 +25,27 @@ export async function getSession(): Promise<Session | null> {
   }
 }
 
-export async function getOrCreateDemoUser(role: Session["role"]) {
+const DEMO_USER_LABELS: Record<Role, string> = {
+  CLIENT: "Демо-пользователь",
+  SUPERADMIN: "Суперадминистратор платформы",
+  ORG_ADMIN: "Администратор услуг (БРК)",
+  AUTHOR: "Автор услуг (БРК)",
+  ANALYST: "Аналитик (только чтение)",
+};
+
+export async function getOrCreateDemoUser(role: Role) {
   const user = await prisma.user.findFirst({ where: { role } });
   if (user) return user;
+
+  let organizationId: string | null = null;
+  if (ORG_SCOPED_ROLES.includes(role)) {
+    // Demo org-scoped users are pinned to KDB (БРК) so the scoping behavior is visible in the demo.
+    const org = await prisma.organization.findFirst({ where: { code: "KDB" } });
+    organizationId = org?.id ?? null;
+  }
+
   return prisma.user.create({
-    data: { role, fullName: role === "ADMIN" ? "Администратор портала" : role === "AUTHOR" ? "Автор услуг" : "Демо-пользователь" },
+    data: { role, fullName: DEMO_USER_LABELS[role], organizationId },
   });
 }
 
