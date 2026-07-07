@@ -15,21 +15,26 @@ datasource db {
 
 enum UserRole {
   CLIENT
-  ADMIN
-  AUTHOR // business-analyst / service author, no dev needed
+  SUPERADMIN // full platform access, not scoped to one organization
+  ORG_ADMIN  // manages services/lookups/applications for their own organization only
+  AUTHOR     // business-analyst / service author, org-scoped like ORG_ADMIN but constructor-focused
+  ANALYST    // read-only across all organizations, cannot mutate anything
 }
 
 model User {
-  id           String        @id @default(cuid())
-  role         UserRole      @default(CLIENT)
-  fullName     String
-  iin          String? // mock eGov IDP identity number
-  bin          String? // for legal entities
-  email        String?       @unique
-  phone        String?
-  createdAt    DateTime      @default(now())
-  applications Application[]
-  notifications Notification[]
+  id             String        @id @default(cuid())
+  role           UserRole      @default(CLIENT)
+  fullName       String
+  iin            String? // mock eGov IDP identity number
+  bin            String? // for legal entities
+  email          String?       @unique
+  phone          String?
+  organizationId String? // required for ORG_ADMIN/AUTHOR — scopes what they can see/edit; null for SUPERADMIN/ANALYST/CLIENT
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime      @default(now())
+  applications   Application[]
+  notifications  Notification[]
+  auditLogs      AuditLog[]
 }
 
 // ---------- Organizations (Holding + subsidiaries) ----------
@@ -43,6 +48,7 @@ model Organization {
   services          Service[]
   analyticsMaterials AnalyticsMaterial[]
   projects          Project[]
+  users             User[]
 }
 
 // ---------- Reference data (справочники) ----------
@@ -81,6 +87,7 @@ model Service {
   category       String // e.g. "Лизинг", "Кредитование", "Субсидирование"
   icon           String  @default("Briefcase")
   status         ServiceStatus @default(DRAFT)
+  version        Int           @default(1) // bumped on each publish; submitted applications snapshot the schema, so this changing doesn't retroactively affect them
   organizationId String
   organization   Organization  @relation(fields: [organizationId], references: [id])
   complexity     String        @default("simple") // simple | multi-stage
@@ -159,17 +166,27 @@ enum ApplicationStatus {
 model Application {
   id          String   @id @default(cuid())
   number      String   @unique
+  idempotencyKey String? @unique // client-generated key; replays of the same submit return the same application
   serviceId   String
   service     Service  @relation(fields: [serviceId], references: [id])
+  serviceVersion Int   @default(1) // Service.version at submission time
+  schemaSnapshot String? // serialized stage/step/field tree as it existed at submission time
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   status      ApplicationStatus @default(DRAFT)
-  data        String   @default("{}") // JSON of all field values keyed by field key
+  data        String   @default("{}") // JSON of all field values keyed by field key, encrypted at rest (see src/lib/crypto.ts)
   currentStageOrder Int @default(1)
+  lastAutosaveAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   history     ApplicationEvent[]
   documents   ApplicationDocument[]
+}
+
+// Atomic counters (e.g. application numbering) — avoids the read-then-write race of counting rows.
+model Counter {
+  id    String @id
+  value Int    @default(0)
 }
 
 model ApplicationEvent {
@@ -258,4 +275,30 @@ model IntegrationLog {
   payload     String   // JSON
   status      String   // ok | error
   createdAt   DateTime @default(now())
+}
+
+// ---------- Audit trail for constructor changes ----------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  entityType String   // "Service" | "ServiceStage" | "ServiceStep" | "FormField" | "Lookup" | "LookupItem" | ...
+  entityId   String
+  action     String   // "create" | "update" | "delete" | "publish"
+  before     String?  // JSON snapshot before the change (null for create)
+  after      String?  // JSON snapshot after the change (null for delete)
+  createdAt  DateTime @default(now())
+}
+
+// ---------- Async outbox (stand-in for a real message broker) ----------
+
+model OutboxEvent {
+  id          String   @id @default(cuid())
+  topic       String   // e.g. "bpm.submissions" — mirrors the Kafka topic this would publish to in production
+  payload     String   // JSON
+  status      String   @default("pending") // pending | processed | failed
+  attempts    Int      @default(0)
+  createdAt   DateTime @default(now())
+  processedAt DateTime?
 }
