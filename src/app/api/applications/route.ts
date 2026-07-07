@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
-import { mockBpmSubmit, mockDocExchange, mockEsignSign } from "@/lib/integrations";
+import { mockDocExchange, mockEsignSign } from "@/lib/integrations";
 import { encryptString, decryptString } from "@/lib/crypto";
 import { CircuitOpenError } from "@/lib/circuitBreaker";
+import { enqueueOutboxEvent } from "@/lib/outbox";
 
 // Atomic counter (single UPDATE ... SET value = value + 1 under the hood) — avoids the
 // classic read-then-write race of generating the number from `count()` under concurrent submits.
@@ -138,25 +139,21 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  let finalStatus: "SUBMITTED" | "IN_REVIEW" = "SUBMITTED";
-  try {
-    const bpm = await mockBpmSubmit(number, service.organization.code);
-    await prisma.applicationEvent.create({
-      data: { applicationId: application.id, type: "integration", message: `Заявка передана в BPM ${service.organization.shortName} (mock), caseId: ${bpm.bpmCaseId}` },
-    });
-    finalStatus = "IN_REVIEW";
-  } catch (err) {
-    degradedEvents.push(err instanceof CircuitOpenError ? "bpm_circuit_open" : "bpm_failed");
-    await prisma.applicationEvent.create({
-      data: {
-        applicationId: application.id,
-        type: "integration",
-        message: `BPM ${service.organization.shortName} временно недоступна — заявка принята и будет передана автоматически, как только связь восстановится.`,
-      },
-    });
-  }
+  // BPM handoff goes through the outbox instead of a synchronous call — a slow/unavailable BPM
+  // can't block this request, since the application is already committed above. A worker
+  // (npm run worker, or the "Обработать очередь" button in /admin/integrations for the demo)
+  // drains this queue; in production this enqueue becomes a Kafka producer.send().
+  await enqueueOutboxEvent("bpm.submissions", {
+    applicationId: application.id,
+    number,
+    organizationCode: service.organization.code,
+    organizationName: service.organization.shortName,
+  });
+  await prisma.applicationEvent.create({
+    data: { applicationId: application.id, type: "integration", message: `Заявка поставлена в очередь на передачу в BPM ${service.organization.shortName}.` },
+  });
 
-  const finalApp = await prisma.application.update({ where: { id: application.id }, data: { status: finalStatus } });
+  const finalApp = await prisma.application.update({ where: { id: application.id }, data: { status: "SUBMITTED" } });
 
   await prisma.notification.create({
     data: {

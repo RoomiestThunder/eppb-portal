@@ -1,26 +1,44 @@
 import { prisma } from "@/lib/prisma";
+import { getBreakerStates, getSimulatedOutages } from "@/lib/circuitBreaker";
+import ConnectorOutageToggle from "@/components/admin/ConnectorOutageToggle";
+import OutboxPanel from "@/components/admin/OutboxPanel";
 
 const CONNECTORS: { code: string; label: string; desc: string }[] = [
   { code: "egov_idp", label: "eGov IDP", desc: "Аутентификация пользователя и получение базовых данных профиля" },
   { code: "iin_bin_check", label: "ГБД ЮЛ/ФЛ (ИИН/БИН)", desc: "Проверка и получение данных заявителя по ИИН/БИН" },
   { code: "esign", label: "ЭЦП (НУЦ РК)", desc: "Подписание заявки и документов электронной цифровой подписью" },
-  { code: "bpm_submit", label: "BPM дочерней организации — подача", desc: "Передача заявки во внутреннюю систему рассмотрения" },
+  { code: "bpm_submit", label: "BPM дочерней организации — подача", desc: "Передача заявки во внутреннюю систему рассмотрения (через outbox-очередь)" },
   { code: "bpm_status", label: "BPM дочерней организации — статус", desc: "Получение статуса рассмотрения заявки" },
   { code: "doc_exchange", label: "Обмен документами", desc: "Передача и хранение приложенных файлов" },
   { code: "notify_sms", label: "Уведомления (SMS/Email)", desc: "Отправка уведомлений заявителю" },
 ];
 
 export default async function AdminIntegrationsPage() {
-  const logs = await prisma.integrationLog.findMany({ orderBy: { createdAt: "desc" }, take: 60 });
+  const [logs, outboxCounts] = await Promise.all([
+    prisma.integrationLog.findMany({ orderBy: { createdAt: "desc" }, take: 60 }),
+    Promise.all([
+      prisma.outboxEvent.count({ where: { status: "pending" } }),
+      prisma.outboxEvent.count({ where: { status: "processed" } }),
+      prisma.outboxEvent.count({ where: { status: "failed" } }),
+    ]),
+  ]);
+  const [pending, processed, failed] = outboxCounts;
+
   const counts = Object.fromEntries(CONNECTORS.map((c) => [c.code, logs.filter((l) => l.connector === c.code).length]));
+  const breakerStates = getBreakerStates();
+  const outages = getSimulatedOutages();
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-900">Интеграционное взаимодействие</h1>
       <p className="mt-1 text-slate-500">
-        Реальная интеграция с гос./корпоративными системами на этапе конкурса не требуется. Ниже — mock-коннекторы и журнал
-        вызовов, демонстрирующие готовность архитектуры к интеграции через Единую интеграционную шину Холдинга.
+        Реальная интеграция с гос./корпоративными системами на этапе конкурса не требуется. Ниже — mock-коннекторы,
+        симуляция сбоев (retry + circuit breaker), очередь асинхронной передачи в BPM и журнал вызовов.
       </p>
+
+      <div className="mt-6">
+        <OutboxPanel pending={pending} processed={processed} failed={failed} />
+      </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {CONNECTORS.map((c) => (
@@ -32,6 +50,7 @@ export default async function AdminIntegrationsPage() {
             <h3 className="mt-2 font-medium text-slate-900">{c.label}</h3>
             <p className="mt-1 text-xs text-slate-500">{c.desc}</p>
             <p className="mt-2 font-mono text-[11px] text-slate-300">connector: {c.code} (mock)</p>
+            <ConnectorOutageToggle connector={c.code} breakerState={breakerStates[c.code] ?? "closed"} simulatedDown={outages.includes(c.code)} />
           </div>
         ))}
       </div>
