@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { SearchX } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import ServiceIcon from "@/components/ServiceIcon";
+import EmptyState from "@/components/EmptyState";
 import { getLocale, pickLocalized } from "@/lib/i18n";
 
 export default async function ServicesCatalogPage({
@@ -86,7 +88,7 @@ export default async function ServicesCatalogPage({
             <div className="flex items-center justify-between">
               <ServiceIcon name={s.icon} className="h-8 w-8 text-brand" />
               {s.complexity === "multi-stage" && (
-                <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[11px] font-medium text-accent-foreground text-amber-700">
+                <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
                   многоэтапная
                 </span>
               )}
@@ -105,9 +107,13 @@ export default async function ServicesCatalogPage({
           </Link>
         ))}
         {filtered.length === 0 && (
-          <p className="col-span-full rounded-xl border border-dashed border-slate-200 p-8 text-center text-slate-400">
-            По вашему запросу ничего не найдено. Попробуйте изменить формулировку или спросите AI-помощника.
-          </p>
+          <div className="col-span-full">
+            <EmptyState
+              icon={SearchX}
+              title="По вашему запросу ничего не найдено"
+              description="Попробуйте изменить формулировку, снять фильтры или спросите AI-помощника внизу справа."
+            />
+          </div>
         )}
       </div>
     </div>

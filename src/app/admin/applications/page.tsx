@@ -1,7 +1,9 @@
+import { FileStack } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSession, ORG_SCOPED_ROLES } from "@/lib/session";
 import { STATUS_LABELS } from "@/lib/statusLabels";
 import ApplicationStatusSelect from "@/components/admin/ApplicationStatusSelect";
+import EmptyState from "@/components/EmptyState";
 
 export default async function AdminApplicationsPage() {
   const session = await getSession();
@@ -53,8 +55,8 @@ export default async function AdminApplicationsPage() {
             ))}
             {applications.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
-                  Заявок пока нет
+                <td colSpan={6} className="border-none p-0">
+                  <EmptyState icon={FileStack} title="Заявок пока нет" description="Они появятся здесь сразу после первой подачи." />
                 </td>
               </tr>
             )}

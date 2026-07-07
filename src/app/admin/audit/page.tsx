@@ -1,4 +1,6 @@
+import { ScrollText } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import EmptyState from "@/components/EmptyState";
 
 const ACTION_LABEL: Record<string, string> = {
   create: "создание",
@@ -46,9 +48,7 @@ export default async function AdminAuditPage() {
           </details>
         ))}
         {logs.length === 0 && (
-          <p className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-slate-400">
-            Изменений пока нет — журнал заполнится по мере работы с конструктором.
-          </p>
+          <EmptyState icon={ScrollText} title="Изменений пока нет" description="Журнал заполнится по мере работы с конструктором." />
         )}
       </div>
     </div>

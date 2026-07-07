@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Inbox, BellOff } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import LoginPrompt from "@/components/LoginPrompt";
+import EmptyState from "@/components/EmptyState";
 import { STATUS_LABELS, STATUS_STYLES } from "@/lib/statusLabels";
 
 export default async function CabinetPage() {
@@ -72,12 +74,12 @@ export default async function CabinetPage() {
               );
             })}
             {applications.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-400">
-                Заявок пока нет.{" "}
-                <Link href="/services" className="text-brand hover:underline">
-                  Перейти в каталог услуг
-                </Link>
-              </div>
+              <EmptyState
+                icon={Inbox}
+                title="Заявок пока нет"
+                description="Найдите подходящую меру поддержки в каталоге и подайте первую заявку."
+                action={{ href: "/services", label: "Перейти в каталог услуг" }}
+              />
             )}
           </div>
         </div>
@@ -92,7 +94,7 @@ export default async function CabinetPage() {
                 <p className="mt-2 text-[11px] text-slate-300">{n.createdAt.toLocaleString("ru-RU")}</p>
               </div>
             ))}
-            {notifications.length === 0 && <p className="text-sm text-slate-400">Уведомлений нет.</p>}
+            {notifications.length === 0 && <EmptyState icon={BellOff} title="Уведомлений нет" />}
           </div>
         </div>
       </div>
