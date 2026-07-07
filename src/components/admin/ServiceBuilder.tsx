@@ -10,7 +10,9 @@ type FieldT = {
   order: number;
   key: string;
   label: string;
+  labelKk: string | null;
   hint: string;
+  hintKk: string | null;
   type: string;
   required: boolean;
   options: string;
@@ -25,9 +27,12 @@ type ServiceT = {
   id: string;
   slug: string;
   name: string;
+  nameKk: string | null;
   category: string;
   shortDescription: string;
+  shortDescriptionKk: string | null;
   fullDescription: string;
+  fullDescriptionKk: string | null;
   status: string;
   organizationId: string;
   organization: { id: string; name: string };
@@ -131,6 +136,12 @@ export default function ServiceBuilder({
               onBlur={(e) => e.target.value !== service.name && updateServiceMeta({ name: e.target.value })}
               className="w-full rounded-lg border border-transparent px-2 py-1 text-xl font-bold text-slate-900 hover:border-black/10 focus:border-brand"
             />
+            <input
+              defaultValue={service.nameKk ?? ""}
+              onBlur={(e) => e.target.value !== (service.nameKk ?? "") && updateServiceMeta({ nameKk: e.target.value || null })}
+              placeholder="Атауы (қазақша, көрсетілмесе — орысша нұсқасы қолданылады)"
+              className="w-full rounded-lg border border-transparent px-2 py-1 text-sm italic text-slate-500 hover:border-black/10 focus:border-brand"
+            />
             <div className="flex flex-wrap gap-3">
               <input
                 defaultValue={service.category}
@@ -156,6 +167,15 @@ export default function ServiceBuilder({
               rows={2}
               className="w-full rounded-lg border border-black/10 px-2 py-1 text-sm text-slate-600"
               placeholder="Краткое описание для карточки услуги"
+            />
+            <textarea
+              defaultValue={service.shortDescriptionKk ?? ""}
+              onBlur={(e) =>
+                e.target.value !== (service.shortDescriptionKk ?? "") && updateServiceMeta({ shortDescriptionKk: e.target.value || null })
+              }
+              rows={2}
+              className="w-full rounded-lg border border-black/10 px-2 py-1 text-sm italic text-slate-500"
+              placeholder="Қысқаша сипаттама (қазақша)"
             />
           </div>
           <div className="flex shrink-0 flex-col gap-2">

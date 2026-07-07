@@ -27,7 +27,8 @@ type Action =
   | { action: "deleteField"; payload: { id: string } }
   | { action: "createLookup"; payload: { code: string; name: string } }
   | { action: "deleteLookup"; payload: { id: string } }
-  | { action: "createLookupItem"; payload: { lookupId: string; value: string; label: string } }
+  | { action: "createLookupItem"; payload: { lookupId: string; value: string; label: string; labelKk?: string | null } }
+  | { action: "updateLookupItem"; payload: { id: string; data: Record<string, unknown> } }
   | { action: "deleteLookupItem"; payload: { id: string } }
   | { action: "createAnalyticsMaterial"; payload: Record<string, unknown> }
   | { action: "deleteAnalyticsMaterial"; payload: { id: string } }
@@ -236,10 +237,22 @@ export async function POST(req: NextRequest) {
       case "createLookupItem": {
         const count = await prisma.lookupItem.count({ where: { lookupId: body.payload.lookupId } });
         const item = await prisma.lookupItem.create({
-          data: { lookupId: body.payload.lookupId, value: body.payload.value, label: body.payload.label, order: count + 1 },
+          data: {
+            lookupId: body.payload.lookupId,
+            value: body.payload.value,
+            label: body.payload.label,
+            labelKk: body.payload.labelKk ?? null,
+            order: count + 1,
+          },
         });
         await writeAudit(session, "LookupItem", item.id, "create", null, item);
         return NextResponse.json({ id: item.id });
+      }
+      case "updateLookupItem": {
+        const before = await prisma.lookupItem.findUnique({ where: { id: body.payload.id } });
+        const after = await prisma.lookupItem.update({ where: { id: body.payload.id }, data: body.payload.data as never });
+        await writeAudit(session, "LookupItem", body.payload.id, "update", before, after);
+        return NextResponse.json({ ok: true });
       }
       case "deleteLookupItem": {
         const before = await prisma.lookupItem.findUnique({ where: { id: body.payload.id } });

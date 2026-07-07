@@ -7,7 +7,9 @@ type FieldT = {
   id: string;
   key: string;
   label: string;
+  labelKk: string | null;
   hint: string;
+  hintKk: string | null;
   type: string;
   required: boolean;
   options: string;
@@ -126,6 +128,23 @@ export default function FieldEditorRow({
                 defaultValue={field.hint}
                 onBlur={(e) => e.target.value !== field.hint && onSave({ hint: e.target.value })}
                 className="w-full rounded-lg border border-black/10 px-2 py-1.5 text-xs"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-slate-400">Название поля (қазақша)</label>
+              <input
+                defaultValue={field.labelKk ?? ""}
+                onBlur={(e) => e.target.value !== (field.labelKk ?? "") && onSave({ labelKk: e.target.value || null })}
+                placeholder="Аудармасы, көрсетілмесе — орысша нұсқасы"
+                className="w-full rounded-lg border border-black/10 px-2 py-1.5 text-xs italic"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-slate-400">Подсказка (қазақша)</label>
+              <input
+                defaultValue={field.hintKk ?? ""}
+                onBlur={(e) => e.target.value !== (field.hintKk ?? "") && onSave({ hintKk: e.target.value || null })}
+                className="w-full rounded-lg border border-black/10 px-2 py-1.5 text-xs italic"
               />
             </div>
           </div>
