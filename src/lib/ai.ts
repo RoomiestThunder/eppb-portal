@@ -3,8 +3,19 @@
 // это гарантирует, что демо-стенд работает стабильно у любого члена жюри без сетевых зависимостей.
 // Интерфейс намеренно спроектирован как provider-абстракция: движок можно заменить на вызов
 // внешней языковой модели без изменения вызывающего кода — см. architecture.md.
+//
+// Fallback-инвариант: ни один шаг основного клиентского пути (поиск услуги вручную через каталог,
+// заполнение формы, отправка заявки) не зависит от функций этого модуля — они используются только
+// в необязательных, вспомогательных местах (чат-виджет, кнопка «Проверить с помощью AI», черновик
+// структуры услуги для автора). Недоступность или ошибка AI-компонента поэтому в принципе не может
+// заблокировать подачу заявки. См. src/lib/__tests__/ai.test.ts.
+//
+// Конфиденциальность: если в проде эти rule-based реализации будет заменены на вызов внешней LLM,
+// исходящий промпт обязан пройти через prepareForExternalLlm() ниже — она вырезает ИИН/БИН и
+// контактные данные тем же способом, что и маскирование в журнале интеграций (src/lib/crypto.ts).
 
 import type { Service } from "@/generated/prisma";
+import { maskPayload } from "@/lib/crypto";
 
 export type ServiceForAi = Pick<Service, "id" | "slug" | "name" | "shortDescription" | "category" | "tags">;
 
@@ -220,4 +231,14 @@ export function suggestServiceStructure(description: string): { category: string
       { title: "Документы", fields: [{ key: "doc_main", label: "Основной пакет документов", type: "FILE", required: true }] },
     ],
   };
+}
+
+// ---------- Confidentiality boundary for a future external LLM ----------
+// Not called anywhere today (there is no external LLM call in this MVP) — this exists so that
+// whoever adds one later has an obvious, already-reviewed place to route application data through
+// before it leaves the process, instead of having to design masking from scratch under deadline
+// pressure. Reuses the exact same redaction rule as the integration log (src/lib/crypto.ts) so the
+// two boundaries can't silently drift apart.
+export function prepareForExternalLlm(applicationData: Record<string, unknown>): Record<string, unknown> {
+  return maskPayload(applicationData);
 }
