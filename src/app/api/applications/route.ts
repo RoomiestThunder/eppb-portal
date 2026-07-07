@@ -5,19 +5,7 @@ import { mockDocExchange, mockEsignSign } from "@/lib/integrations";
 import { encryptString, decryptString } from "@/lib/crypto";
 import { CircuitOpenError } from "@/lib/circuitBreaker";
 import { enqueueOutboxEvent } from "@/lib/outbox";
-
-// Atomic counter (single UPDATE ... SET value = value + 1 under the hood) — avoids the
-// classic read-then-write race of generating the number from `count()` under concurrent submits.
-async function nextApplicationNumber() {
-  const year = new Date().getFullYear();
-  const counterId = `application_number_${year}`;
-  const counter = await prisma.counter.upsert({
-    where: { id: counterId },
-    create: { id: counterId, value: 1 },
-    update: { value: { increment: 1 } },
-  });
-  return `EPPB-${year}-${String(counter.value).padStart(6, "0")}`;
-}
+import { nextApplicationNumber } from "@/lib/applicationNumber";
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
@@ -27,6 +15,7 @@ export async function POST(req: NextRequest) {
     serviceId: string;
     data: Record<string, unknown>;
     applicationId?: string;
+    draftId?: string;
     targetStageOrder?: number;
     idempotencyKey?: string;
   };
@@ -82,34 +71,59 @@ export async function POST(req: NextRequest) {
     if (already) return NextResponse.json({ number: already.number, applicationId: already.id });
   }
 
-  const number = await nextApplicationNumber();
   // Snapshot the schema the applicant actually filled — if an admin edits/republishes this service
   // later, this application's own record of "what the form looked like" doesn't change retroactively.
   const schemaSnapshot = JSON.stringify(service.stages);
 
   let application;
-  try {
-    application = await prisma.application.create({
+  let number: string;
+
+  if (body.draftId) {
+    // Finalizing an autosaved draft — reuse its row and its already-reserved number instead of
+    // creating a second application.
+    const draft = await prisma.application.findUnique({ where: { id: body.draftId } });
+    if (!draft || draft.userId !== session.userId) return NextResponse.json({ error: "draft not found" }, { status: 404 });
+    if (draft.status !== "DRAFT") {
+      // Already finalized (e.g. duplicate tab) — behave like an idempotent replay.
+      return NextResponse.json({ number: draft.number, applicationId: draft.id });
+    }
+    number = draft.number;
+    application = await prisma.application.update({
+      where: { id: draft.id },
       data: {
-        number,
         idempotencyKey: body.idempotencyKey,
-        serviceId: service.id,
         serviceVersion: service.version,
         schemaSnapshot,
-        userId: session.userId,
         status: "SUBMITTED",
-        currentStageOrder: 1,
         data: encryptString(JSON.stringify(body.data)),
         history: { create: [{ type: "status_change", message: "Заявка подана предпринимателем" }] },
       },
     });
-  } catch (err: unknown) {
-    // Unique constraint race on idempotencyKey — another request with the same key won the create.
-    if (body.idempotencyKey && err && typeof err === "object" && "code" in err && err.code === "P2002") {
-      const winner = await prisma.application.findUnique({ where: { idempotencyKey: body.idempotencyKey } });
-      if (winner) return NextResponse.json({ number: winner.number, applicationId: winner.id });
+  } else {
+    number = await nextApplicationNumber();
+    try {
+      application = await prisma.application.create({
+        data: {
+          number,
+          idempotencyKey: body.idempotencyKey,
+          serviceId: service.id,
+          serviceVersion: service.version,
+          schemaSnapshot,
+          userId: session.userId,
+          status: "SUBMITTED",
+          currentStageOrder: 1,
+          data: encryptString(JSON.stringify(body.data)),
+          history: { create: [{ type: "status_change", message: "Заявка подана предпринимателем" }] },
+        },
+      });
+    } catch (err: unknown) {
+      // Unique constraint race on idempotencyKey — another request with the same key won the create.
+      if (body.idempotencyKey && err && typeof err === "object" && "code" in err && err.code === "P2002") {
+        const winner = await prisma.application.findUnique({ where: { idempotencyKey: body.idempotencyKey } });
+        if (winner) return NextResponse.json({ number: winner.number, applicationId: winner.id });
+      }
+      throw err;
     }
-    throw err;
   }
 
   // Everything past this point talks to external systems (mocked here). Their failure must not

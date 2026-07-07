@@ -28,6 +28,7 @@ export default function ApplicationWizard({
   initialData,
   applicationId,
   targetStageOrder,
+  draftId,
 }: {
   serviceId: string;
   serviceSlug: string;
@@ -39,6 +40,7 @@ export default function ApplicationWizard({
   initialData?: Record<string, unknown>;
   applicationId?: string;
   targetStageOrder?: number;
+  draftId?: string; // resuming an autosaved draft for a first-stage (not yet submitted) application
 }) {
   const router = useRouter();
   const allFields = useMemo(() => steps.flatMap((s) => s.fields), [steps]);
@@ -61,8 +63,42 @@ export default function ApplicationWizard({
   // reuses the same key so the server returns the existing application instead of creating another.
   const idempotencyKey = useRef(crypto.randomUUID());
 
+  // Draft autosave (only for a first-time submission flow, not the "continue to next stage" one —
+  // that flow already has a real, submitted Application behind it).
+  const [currentDraftId, setCurrentDraftId] = useState(draftId);
+  const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const skipNextAutosave = useRef(true); // don't autosave the very first render (nothing changed yet)
+
   const { visible, enrichedData } = useMemo(() => computeVisibleFieldsWithCalculations(allFields, formData), [allFields, formData]);
   const visibleIds = useMemo(() => new Set(visible.map((f) => f.id)), [visible]);
+
+  useEffect(() => {
+    if (applicationId) return; // continuing a later stage of an already-submitted application — no drafts here
+    if (skipNextAutosave.current) {
+      skipNextAutosave.current = false;
+      return;
+    }
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/applications/draft", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ serviceId, data: formData, draftId: currentDraftId }),
+        });
+        const data = await res.json();
+        if (data.draftId) setCurrentDraftId(data.draftId);
+        if (!data.alreadySubmitted) setDraftSavedAt(new Date());
+      } catch {
+        // best-effort — losing one autosave tick isn't fatal, the next edit will retry
+      }
+    }, 2000);
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData]);
 
   const step = steps[stepIndex];
   const stepFields = step.fields.filter((f) => visibleIds.has(f.id));
@@ -161,7 +197,14 @@ export default function ApplicationWizard({
       const res = await fetch("/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceId, data: enrichedData, applicationId, targetStageOrder, idempotencyKey: idempotencyKey.current }),
+        body: JSON.stringify({
+          serviceId,
+          data: enrichedData,
+          applicationId,
+          targetStageOrder,
+          idempotencyKey: idempotencyKey.current,
+          draftId: currentDraftId,
+        }),
       });
       if (!res.ok) throw new Error("submit failed");
       const data = await res.json();
@@ -204,8 +247,13 @@ export default function ApplicationWizard({
           <div key={s.id} className={`h-1.5 flex-1 rounded-full ${i <= stepIndex ? "bg-brand" : "bg-slate-200"}`} />
         ))}
       </div>
-      <p className="mt-2 text-xs text-slate-400">
-        Шаг {stepIndex + 1} из {steps.length}
+      <p className="mt-2 flex items-center justify-between text-xs text-slate-400">
+        <span>
+          Шаг {stepIndex + 1} из {steps.length}
+        </span>
+        {!applicationId && draftSavedAt && (
+          <span className="text-emerald-600">Черновик сохранён в {draftSavedAt.toLocaleTimeString("ru-RU")}</span>
+        )}
       </p>
 
       <div className="mt-4 rounded-2xl border border-black/5 bg-white p-8 shadow-sm">

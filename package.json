@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
-    "worker": "tsx scripts/worker.ts"
+    "worker": "tsx scripts/worker.ts",
+    "cleanup-drafts": "tsx scripts/cleanup-drafts.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

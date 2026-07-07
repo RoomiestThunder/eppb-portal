@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { toWizardField } from "@/lib/wizardMapper";
+import { decryptString } from "@/lib/crypto";
 import ApplicationWizard from "@/components/ApplicationWizard";
 import LoginPrompt from "@/components/LoginPrompt";
 
@@ -46,6 +47,12 @@ export default async function ApplyPage({ params }: { params: Promise<{ slug: st
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
 
+  // Resume an autosaved draft for this service, if one exists, instead of starting from scratch.
+  const draft = await prisma.application.findFirst({
+    where: { serviceId: service.id, userId: session.userId, status: "DRAFT" },
+    orderBy: { updatedAt: "desc" },
+  });
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <ApplicationWizard
@@ -61,6 +68,8 @@ export default async function ApplyPage({ params }: { params: Promise<{ slug: st
         }))}
         lookups={lookups}
         profile={{ bin: user?.bin ?? null, iin: user?.iin ?? null, fullName: user?.fullName ?? "" }}
+        initialData={draft ? (JSON.parse(decryptString(draft.data)) as Record<string, unknown>) : undefined}
+        draftId={draft?.id}
       />
     </div>
   );
