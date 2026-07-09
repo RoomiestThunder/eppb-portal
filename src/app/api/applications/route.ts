@@ -26,12 +26,19 @@ export async function POST(req: NextRequest) {
   });
   if (!service) return NextResponse.json({ error: "service not found" }, { status: 404 });
 
-  const fileEntries = Object.entries(body.data).filter(([, v]) => typeof v === "string" && (v as string).length > 0 && String(v).includes("."));
+  // A value is a document only if its field is declared FILE in the service schema —
+  // guessing from the value's shape would misfire on emails, decimals, etc.
+  const fileFieldKeys = new Set(
+    service.stages.flatMap((st) => st.steps.flatMap((s) => s.fields.filter((f) => f.type === "FILE").map((f) => f.key)))
+  );
+  const fileEntries = Object.entries(body.data).filter(
+    ([key, v]) => fileFieldKeys.has(key) && typeof v === "string" && v.length > 0
+  );
 
   if (body.applicationId) {
     // Submitting extended data for a later stage of an existing application
     const existing = await prisma.application.findUnique({ where: { id: body.applicationId } });
-    if (!existing) return NextResponse.json({ error: "application not found" }, { status: 404 });
+    if (!existing || existing.userId !== session.userId) return NextResponse.json({ error: "application not found" }, { status: 404 });
 
     const mergedData = { ...JSON.parse(decryptString(existing.data)), ...body.data };
     const updated = await prisma.application.update({
@@ -167,8 +174,6 @@ export async function POST(req: NextRequest) {
     data: { applicationId: application.id, type: "integration", message: `Заявка поставлена в очередь на передачу в BPM ${service.organization.shortName}.` },
   });
 
-  const finalApp = await prisma.application.update({ where: { id: application.id }, data: { status: "SUBMITTED" } });
-
   await prisma.notification.create({
     data: {
       userId: session.userId,
@@ -180,5 +185,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json({ number: finalApp.number, applicationId: finalApp.id, degraded: degradedEvents.length > 0 });
+  return NextResponse.json({ number: application.number, applicationId: application.id, degraded: degradedEvents.length > 0 });
 }
