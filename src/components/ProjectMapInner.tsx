@@ -5,12 +5,13 @@ import L from "leaflet";
 import { useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import type { ProjectVM } from "@/components/ProjectMapClient";
+import { t, type Locale } from "@/lib/i18n";
 
-const STATUS_LABELS: Record<string, string> = {
-  planned: "Планируется",
-  financing: "Финансируется",
-  active: "Реализуется",
-  completed: "Завершен",
+const STATUS_LABEL_KEY: Record<string, "statusPlanned" | "statusFinancing" | "statusActive" | "statusCompleted"> = {
+  planned: "statusPlanned",
+  financing: "statusFinancing",
+  active: "statusActive",
+  completed: "statusCompleted",
 };
 
 function makeIcon(color: string) {
@@ -29,9 +30,11 @@ function formatAmount(n: number, currency: string) {
 export default function ProjectMapInner({
   projects,
   organizations,
+  locale,
 }: {
   projects: ProjectVM[];
   organizations: { id: string; shortName: string; logoColor: string }[];
+  locale: Locale;
 }) {
   const [org, setOrg] = useState("");
   const [region, setRegion] = useState("");
@@ -60,7 +63,7 @@ export default function ProjectMapInner({
     <div className="mt-6">
       <div className="flex flex-wrap gap-2">
         <select value={org} onChange={(e) => setOrg(e.target.value)} className="rounded-lg border border-black/10 px-3 py-1.5 text-sm">
-          <option value="">Все организации</option>
+          <option value="">{t(locale, "allOrganizations")}</option>
           {organizations.map((o) => (
             <option key={o.id} value={o.id}>
               {o.shortName}
@@ -68,7 +71,7 @@ export default function ProjectMapInner({
           ))}
         </select>
         <select value={region} onChange={(e) => setRegion(e.target.value)} className="rounded-lg border border-black/10 px-3 py-1.5 text-sm">
-          <option value="">Все регионы</option>
+          <option value="">{t(locale, "allRegions")}</option>
           {regions.map((r) => (
             <option key={r} value={r}>
               {r}
@@ -76,7 +79,7 @@ export default function ProjectMapInner({
           ))}
         </select>
         <select value={industry} onChange={(e) => setIndustry(e.target.value)} className="rounded-lg border border-black/10 px-3 py-1.5 text-sm">
-          <option value="">Все отрасли</option>
+          <option value="">{t(locale, "allIndustries")}</option>
           {industries.map((i) => (
             <option key={i} value={i}>
               {i}
@@ -84,14 +87,16 @@ export default function ProjectMapInner({
           ))}
         </select>
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border border-black/10 px-3 py-1.5 text-sm">
-          <option value="">Все статусы</option>
-          {Object.entries(STATUS_LABELS).map(([k, l]) => (
+          <option value="">{t(locale, "allStatuses")}</option>
+          {Object.entries(STATUS_LABEL_KEY).map(([k, labelKey]) => (
             <option key={k} value={k}>
-              {l}
+              {t(locale, labelKey)}
             </option>
           ))}
         </select>
-        <span className="ml-auto self-center text-sm text-slate-400">Найдено: {filtered.length}</span>
+        <span className="ml-auto self-center whitespace-nowrap text-sm text-slate-400">
+          {t(locale, "foundCount")}: {filtered.length}
+        </span>
       </div>
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_280px]">
@@ -108,11 +113,11 @@ export default function ProjectMapInner({
                     <p className="font-semibold">{p.name}</p>
                     <p className="mt-1 text-xs text-slate-500">{p.organization.shortName}</p>
                     <dl className="mt-2 space-y-0.5 text-xs">
-                      <div>Регион: {p.region}</div>
-                      <div>Отрасль: {p.industry}</div>
-                      <div>Сумма: {formatAmount(p.amount, p.currency)}</div>
-                      <div>Период: {p.periodStart}–{p.periodEnd}</div>
-                      <div>Статус: {STATUS_LABELS[p.status]}</div>
+                      <div>{t(locale, "regionWord")}: {p.region}</div>
+                      <div>{t(locale, "industryWord")}: {p.industry}</div>
+                      <div>{t(locale, "amountWord")}: {formatAmount(p.amount, p.currency)}</div>
+                      <div>{t(locale, "periodWord")}: {p.periodStart}–{p.periodEnd}</div>
+                      <div>{t(locale, "statusWord")}: {t(locale, STATUS_LABEL_KEY[p.status])}</div>
                     </dl>
                     <p className="mt-2 text-xs text-slate-500">{p.description}</p>
                   </div>
@@ -123,7 +128,7 @@ export default function ProjectMapInner({
         </div>
 
         <div>
-          <h2 className="font-semibold text-slate-900">Проекты по регионам</h2>
+          <h2 className="font-semibold text-slate-900">{t(locale, "projectsByRegion")}</h2>
           <div className="mt-3 space-y-2">
             {byRegion.map(([r, count]) => (
               <div key={r}>
@@ -136,7 +141,7 @@ export default function ProjectMapInner({
                 </div>
               </div>
             ))}
-            {byRegion.length === 0 && <p className="text-sm text-slate-400">Нет данных</p>}
+            {byRegion.length === 0 && <p className="text-sm text-slate-400">{t(locale, "noDataWord")}</p>}
           </div>
         </div>
       </div>

@@ -4,7 +4,8 @@ import "./globals.css";
 import Header from "@/components/Header";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { getSession } from "@/lib/session";
-import { getLocale, t } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
 import Link from "next/link";
 
 const geistSans = Geist({
@@ -38,12 +39,12 @@ export default async function RootLayout({
           <div className="mx-auto max-w-7xl px-4 py-8 text-sm text-slate-500 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p>© 2026 АО «НУХ «Байтерек» — {t(locale, "heroTitle")} (MVP для конкурса AstanaHub)</p>
-              <div className="flex gap-4">
-                <Link href="/services" className="hover:text-brand">Услуги</Link>
-                <Link href="/tools" className="hover:text-brand">Инструменты</Link>
-                <Link href="/analytics" className="hover:text-brand">Аналитика</Link>
-                <Link href="/map" className="hover:text-brand">Карта проектов</Link>
-                <Link href="/admin" className="hover:text-brand">Админ-панель</Link>
+              <div className="flex flex-wrap gap-4">
+                <Link href="/services" className="whitespace-nowrap hover:text-brand">{t(locale, "catalog")}</Link>
+                <Link href="/tools" className="whitespace-nowrap hover:text-brand">{t(locale, "tools")}</Link>
+                <Link href="/analytics" className="whitespace-nowrap hover:text-brand">{t(locale, "analytics")}</Link>
+                <Link href="/map" className="whitespace-nowrap hover:text-brand">{t(locale, "map")}</Link>
+                <Link href="/admin" className="whitespace-nowrap hover:text-brand">{t(locale, "admin")}</Link>
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { LOCALE_COOKIE, type Locale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
+import { LOCALE_COOKIE } from "@/lib/locale";
 
 export async function POST(req: NextRequest) {
   const { locale } = (await req.json()) as { locale: Locale };

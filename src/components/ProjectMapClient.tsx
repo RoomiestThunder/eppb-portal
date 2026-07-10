@@ -1,14 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { Locale } from "@/lib/i18n";
 
 const ProjectMapInner = dynamic(() => import("@/components/ProjectMapInner"), {
   ssr: false,
-  loading: () => (
-    <div className="mt-6 flex h-[520px] items-center justify-center rounded-2xl border border-black/5 bg-white text-slate-400">
-      Загрузка карты…
-    </div>
-  ),
+  loading: () => <div className="mt-6 h-[520px] animate-pulse rounded-2xl border border-black/5 bg-slate-50" />,
 });
 
 export type ProjectVM = {
@@ -31,9 +28,11 @@ export type ProjectVM = {
 export default function ProjectMapClient({
   projects,
   organizations,
+  locale,
 }: {
   projects: ProjectVM[];
   organizations: { id: string; shortName: string; logoColor: string }[];
+  locale: Locale;
 }) {
-  return <ProjectMapInner projects={projects} organizations={organizations} />;
+  return <ProjectMapInner projects={projects} organizations={organizations} locale={locale} />;
 }

@@ -3,7 +3,8 @@ import { SearchX } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import ServiceIcon from "@/components/ServiceIcon";
 import EmptyState from "@/components/EmptyState";
-import { getLocale, pickLocalized } from "@/lib/i18n";
+import { pickLocalized, pickCategory, t, tCatalogCount } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
 
 export default async function ServicesCatalogPage({
   searchParams,
@@ -33,35 +34,35 @@ export default async function ServicesCatalogPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-bold text-slate-900">Каталог мер поддержки</h1>
-      <p className="mt-1 text-slate-500">
-        {services.length} услуг доступно на портале. Найдено по вашему запросу: {filtered.length}.
-      </p>
+      <h1 className="text-2xl font-bold text-slate-900">{t(locale, "catalogTitle")}</h1>
+      <p className="mt-1 text-slate-500">{tCatalogCount(locale, services.length, filtered.length)}</p>
 
       <form action="/services" className="mt-6 flex gap-2">
         <input
           name="q"
           defaultValue={q}
-          placeholder="Поиск по названию, отрасли, задаче…"
-          className="flex-1 rounded-full border border-black/10 px-4 py-2.5 outline-none focus:border-brand"
+          placeholder={t(locale, "catalogSearchPlaceholder")}
+          className="min-w-0 flex-1 rounded-full border border-black/10 px-4 py-2.5 outline-none focus:border-brand"
         />
-        <button className="rounded-full bg-brand px-5 py-2.5 text-white hover:bg-brand-dark">Найти</button>
+        <button className="shrink-0 whitespace-nowrap rounded-full bg-brand px-5 py-2.5 text-white hover:bg-brand-dark">
+          {t(locale, "catalogSearchButton")}
+        </button>
       </form>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Link
           href="/services"
-          className={`rounded-full px-3 py-1.5 text-sm ${!category ? "bg-brand text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+          className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm ${!category ? "bg-brand text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
         >
-          Все категории
+          {t(locale, "allCategories")}
         </Link>
         {categories.map((c) => (
           <Link
             key={c}
             href={`/services?category=${encodeURIComponent(c)}`}
-            className={`rounded-full px-3 py-1.5 text-sm ${category === c ? "bg-brand text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm ${category === c ? "bg-brand text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
           >
-            {c}
+            {pickCategory(c, locale)}
           </Link>
         ))}
       </div>
@@ -88,8 +89,8 @@ export default async function ServicesCatalogPage({
             <div className="flex items-center justify-between">
               <ServiceIcon name={s.icon} className="h-8 w-8 text-brand" />
               {s.complexity === "multi-stage" && (
-                <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
-                  многоэтапная
+                <span className="whitespace-nowrap rounded-full bg-accent/20 px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
+                  {t(locale, "multiStage")}
                 </span>
               )}
             </div>
@@ -102,17 +103,13 @@ export default async function ServicesCatalogPage({
               >
                 {s.organization.shortName}
               </span>
-              <span>{s.category}</span>
+              <span>{pickCategory(s.category, locale)}</span>
             </div>
           </Link>
         ))}
         {filtered.length === 0 && (
           <div className="col-span-full">
-            <EmptyState
-              icon={SearchX}
-              title="По вашему запросу ничего не найдено"
-              description="Попробуйте изменить формулировку, снять фильтры или спросите AI-помощника внизу справа."
-            />
+            <EmptyState icon={SearchX} title={t(locale, "catalogEmptyTitle")} description={t(locale, "catalogEmptyBody")} />
           </div>
         )}
       </div>

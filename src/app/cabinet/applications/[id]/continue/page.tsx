@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { toWizardField } from "@/lib/wizardMapper";
 import { decryptString } from "@/lib/crypto";
-import { getLocale, pickLocalized } from "@/lib/i18n";
+import { pickLocalized, t } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
 import ApplicationWizard from "@/components/ApplicationWizard";
 
 export default async function ContinueApplicationPage({ params }: { params: Promise<{ id: string }> }) {
@@ -32,10 +33,10 @@ export default async function ContinueApplicationPage({ params }: { params: Prom
   if (!nextStage) {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <h1 className="text-xl font-semibold text-slate-900">Дополнительные данные не требуются</h1>
-        <p className="mt-2 text-slate-500">По этой заявке больше нет этапов, ожидающих ввода данных.</p>
+        <h1 className="text-xl font-semibold text-slate-900">{t(locale, "noExtraDataTitle")}</h1>
+        <p className="mt-2 text-slate-500">{t(locale, "noExtraDataBody")}</p>
         <Link href={`/cabinet/applications/${app.id}`} className="mt-4 inline-block text-brand hover:underline">
-          ← К заявке
+          ← {t(locale, "backToApplication")}
         </Link>
       </div>
     );
@@ -55,17 +56,17 @@ export default async function ContinueApplicationPage({ params }: { params: Prom
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <Link href={`/cabinet/applications/${app.id}`} className="text-sm text-slate-400 hover:text-brand">
-        ← К заявке {app.number}
+        ← {t(locale, "backToApplication")} {app.number}
       </Link>
       <div className="mt-4">
         <ApplicationWizard
           serviceId={app.serviceId}
           serviceSlug={app.service.slug}
           serviceName={pickLocalized(app.service.name, app.service.nameKk, locale)}
-          stageTitle={`Этап ${nextStage.order}. ${nextStage.title}`}
+          stageTitle={`${t(locale, "stageWord")} ${nextStage.order}. ${pickLocalized(nextStage.title, nextStage.titleKk, locale)}`}
           steps={nextStage.steps.map((s) => ({
             id: s.id,
-            title: s.title,
+            title: pickLocalized(s.title, s.titleKk, locale),
             description: s.description,
             fields: s.fields.map((f) => toWizardField(f, locale)),
           }))}

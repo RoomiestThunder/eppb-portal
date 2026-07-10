@@ -21,8 +21,8 @@ type FieldT = {
   visibilityRule: string | null;
   validation: string | null;
 };
-type StepT = { id: string; order: number; title: string; description: string; fields: FieldT[] };
-type StageT = { id: string; order: number; title: string; description: string; steps: StepT[] };
+type StepT = { id: string; order: number; title: string; titleKk: string | null; description: string; fields: FieldT[] };
+type StageT = { id: string; order: number; title: string; titleKk: string | null; description: string; steps: StepT[] };
 type ServiceT = {
   id: string;
   slug: string;
@@ -235,6 +235,15 @@ export default function ServiceBuilder({
                 удалить
               </button>
             </div>
+            <input
+              defaultValue={activeStage.titleKk ?? ""}
+              onBlur={(e) =>
+                e.target.value !== (activeStage.titleKk ?? "") &&
+                mutate("updateStage", { id: activeStage.id, data: { titleKk: e.target.value || null } }).then(refresh)
+              }
+              placeholder="Атауы (қазақша)"
+              className="w-full rounded-lg border border-transparent px-1 text-xs italic text-slate-500 hover:border-black/10 focus:border-brand"
+            />
             <div className="mt-2 space-y-1">
               {activeStage.steps.map((step) => (
                 <button
@@ -267,6 +276,15 @@ export default function ServiceBuilder({
                   удалить шаг
                 </button>
               </div>
+              <input
+                defaultValue={activeStep.titleKk ?? ""}
+                onBlur={(e) =>
+                  e.target.value !== (activeStep.titleKk ?? "") &&
+                  mutate("updateStep", { id: activeStep.id, data: { titleKk: e.target.value || null } }).then(refresh)
+                }
+                placeholder="Атауы (қазақша)"
+                className="w-full rounded-lg border border-transparent px-2 py-1 text-sm italic text-slate-500 hover:border-black/10 focus:border-brand"
+              />
               <textarea
                 defaultValue={activeStep.description}
                 onBlur={(e) => e.target.value !== activeStep.description && mutate("updateStep", { id: activeStep.id, data: { description: e.target.value } }).then(refresh)}

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ListChecks, Paperclip } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import ServiceIcon from "@/components/ServiceIcon";
-import { getLocale, pickLocalized } from "@/lib/i18n";
+import { pickLocalized, pickCategory, t } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
 
 export default async function ServiceCardPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -26,7 +28,7 @@ export default async function ServiceCardPage({ params }: { params: Promise<{ sl
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <nav className="text-sm text-slate-400">
-        <Link href="/services" className="hover:text-brand">Каталог услуг</Link> / {service.category}
+        <Link href="/services" className="hover:text-brand">{t(locale, "breadcrumbCatalog")}</Link> / {pickCategory(service.category, locale)}
       </nav>
 
       <div className="mt-4 flex flex-col gap-6 rounded-2xl border border-black/5 bg-white p-8 shadow-sm sm:flex-row sm:items-start">
@@ -38,9 +40,11 @@ export default async function ServiceCardPage({ params }: { params: Promise<{ sl
             <span className="rounded-full px-3 py-1 text-xs font-medium text-white" style={{ backgroundColor: service.organization.logoColor }}>
               {service.organization.name}
             </span>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">{service.category}</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">{pickCategory(service.category, locale)}</span>
             {service.complexity === "multi-stage" && (
-              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">многоэтапная услуга</span>
+              <span className="whitespace-nowrap rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                {t(locale, "multiStageService")}
+              </span>
             )}
           </div>
           <h1 className="mt-3 text-2xl font-bold text-slate-900">{pickLocalized(service.name, service.nameKk, locale)}</h1>
@@ -49,27 +53,35 @@ export default async function ServiceCardPage({ params }: { params: Promise<{ sl
           </p>
 
           <div className="mt-6 flex flex-wrap gap-6 text-sm text-slate-500">
-            <span>📝 {totalSteps} {totalSteps === 1 ? "шаг" : "шагов"} в {service.stages.length} {service.stages.length === 1 ? "этапе" : "этапах"}</span>
-            <span>📎 Документов: {docFields.length}</span>
+            <span className="flex items-center gap-1.5">
+              <ListChecks className="h-4 w-4 text-brand" strokeWidth={2} />
+              {locale === "kk"
+                ? `${totalSteps} ${t(locale, "stepOne")}, ${service.stages.length} ${t(locale, "stepsOfStagesOne")}`
+                : `${totalSteps} ${totalSteps === 1 ? "шаг" : "шагов"} в ${service.stages.length} ${service.stages.length === 1 ? "этапе" : "этапах"}`}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Paperclip className="h-4 w-4 text-brand" strokeWidth={2} />
+              {t(locale, "documentsCount")}: {docFields.length}
+            </span>
           </div>
 
           <Link
             href={`/services/${service.slug}/apply`}
             className="mt-6 inline-block rounded-full bg-brand px-6 py-3 font-medium text-white hover:bg-brand-dark"
           >
-            Подать заявку →
+            {t(locale, "applyNow")} →
           </Link>
         </div>
       </div>
 
       {/* Journey overview */}
       <div className="mt-10">
-        <h2 className="text-lg font-semibold text-slate-900">Как проходит подача заявки</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{t(locale, "howApplyGoes")}</h2>
         <div className="mt-4 space-y-6">
           {service.stages.map((stage) => (
             <div key={stage.id} className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
               <h3 className="font-medium text-slate-900">
-                Этап {stage.order}. {stage.title}
+                {t(locale, "stageWord")} {stage.order}. {pickLocalized(stage.title, stage.titleKk, locale)}
               </h3>
               {stage.description && <p className="mt-1 text-sm text-slate-500">{stage.description}</p>}
               <ol className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -79,8 +91,10 @@ export default async function ServiceCardPage({ params }: { params: Promise<{ sl
                       {step.order}
                     </span>
                     <div>
-                      <p className="text-sm font-medium text-slate-800">{step.title}</p>
-                      <p className="text-xs text-slate-500">{step.fields.length} полей</p>
+                      <p className="text-sm font-medium text-slate-800">{pickLocalized(step.title, step.titleKk, locale)}</p>
+                      <p className="text-xs text-slate-500">
+                        {step.fields.length} {t(locale, "fieldsCount")}
+                      </p>
                     </div>
                   </li>
                 ))}

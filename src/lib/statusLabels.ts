@@ -1,3 +1,6 @@
+import type { Locale } from "@/lib/i18n";
+
+// Plain RU labels — used in admin/author screens, which stay Russian-only by design.
 export const STATUS_LABELS: Record<string, string> = {
   DRAFT: "Черновик",
   SUBMITTED: "Подана",
@@ -6,6 +9,20 @@ export const STATUS_LABELS: Record<string, string> = {
   APPROVED: "Одобрена",
   REJECTED: "Отклонена",
 };
+
+const STATUS_LABELS_KK: Record<string, string> = {
+  DRAFT: "Қолжазба",
+  SUBMITTED: "Берілді",
+  IN_REVIEW: "Қаралуда",
+  ADDITIONAL_INFO_REQUIRED: "Қосымша деректер қажет",
+  APPROVED: "Мақұлданды",
+  REJECTED: "Қабылданбады",
+};
+
+// Locale-aware lookup — used on client-facing screens (cabinet, application detail).
+export function getStatusLabel(status: string, locale: Locale): string {
+  return (locale === "kk" ? STATUS_LABELS_KK[status] : STATUS_LABELS[status]) ?? status;
+}
 
 export const STATUS_STYLES: Record<string, string> = {
   DRAFT: "bg-slate-100 text-slate-600",

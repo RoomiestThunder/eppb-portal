@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { pickLocalized, pickCategory, t } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
 
 export default async function HomePage() {
+  const locale = await getLocale();
   const services = await prisma.service.findMany({
     where: { status: "PUBLISHED" },
     include: { organization: true },
@@ -13,51 +16,53 @@ export default async function HomePage() {
   const projectCount = await prisma.project.count();
   const regionCount = (await prisma.lookup.findUnique({ where: { code: "regions" }, include: { items: true } }))?.items.length ?? 0;
 
+  const howItWorks = [
+    ["1", t(locale, "howStep1Title"), t(locale, "howStep1Body")],
+    ["2", t(locale, "howStep2Title"), t(locale, "howStep2Body")],
+    ["3", t(locale, "howStep3Title"), t(locale, "howStep3Body")],
+    ["4", t(locale, "howStep4Title"), t(locale, "howStep4Body")],
+  ];
+
   return (
     <div>
       {/* Hero */}
       <section className="bg-gradient-to-b from-brand to-brand-dark text-white">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <p className="mb-3 inline-block rounded-full bg-white/10 px-3 py-1 text-xs tracking-wide text-white/80">
-            АО «НУХ «Байтерек» и дочерние организации
+            {t(locale, "homeHeroTag")}
           </p>
-          <h1 className="max-w-3xl text-3xl font-bold leading-tight sm:text-5xl">
-            Все меры поддержки бизнеса — в одном окне
-          </h1>
-          <p className="mt-4 max-w-2xl text-white/80">
-            Найдите подходящую меру поддержки, подайте заявку понятным пошаговым сценарием и отслеживайте
-            статус — без блуждания по разным сайтам дочерних организаций Холдинга.
-          </p>
+          <h1 className="max-w-3xl text-3xl font-bold leading-tight sm:text-5xl">{t(locale, "homeHeroTitle")}</h1>
+          <p className="mt-4 max-w-2xl text-white/80">{t(locale, "homeHeroBody")}</p>
 
           <form action="/services" className="mt-8 flex max-w-xl gap-2 rounded-full bg-white p-1.5 shadow-lg">
             <input
               name="q"
-              placeholder="Например: лизинг вагонов, субсидия животноводство…"
-              className="flex-1 rounded-full px-4 py-2.5 text-slate-800 outline-none"
+              placeholder={t(locale, "homeSearchPlaceholder")}
+              className="min-w-0 flex-1 rounded-full px-4 py-2.5 text-slate-800 outline-none"
             />
-            <button type="submit" className="rounded-full bg-brand px-5 py-2.5 font-medium text-white hover:bg-brand-dark">
-              Найти услугу
+            <button type="submit" className="shrink-0 whitespace-nowrap rounded-full bg-brand px-5 py-2.5 font-medium text-white hover:bg-brand-dark">
+              {t(locale, "homeSearchButton")}
             </button>
           </form>
 
           <div className="mt-4 flex flex-wrap gap-3 text-sm">
-            <Link href="/services" className="rounded-full border border-white/30 px-4 py-2 hover:bg-white/10">
-              Открыть каталог услуг
+            <Link href="/services" className="whitespace-nowrap rounded-full border border-white/30 px-4 py-2 hover:bg-white/10">
+              {t(locale, "homeOpenCatalog")}
             </Link>
-            <Link href="/cabinet" className="rounded-full border border-white/30 px-4 py-2 hover:bg-white/10">
-              Мои заявки
+            <Link href="/cabinet" className="whitespace-nowrap rounded-full border border-white/30 px-4 py-2 hover:bg-white/10">
+              {t(locale, "homeMyApplications")}
             </Link>
-            <span className="rounded-full border border-dashed border-white/30 px-4 py-2 text-white/70">
-              ✨ Спросите AI-помощника (справа внизу)
+            <span className="whitespace-nowrap rounded-full border border-dashed border-white/30 px-4 py-2 text-white/70">
+              {t(locale, "homeAskAi")}
             </span>
           </div>
 
           <dl className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
             {[
-              { label: "Услуг на портале", value: services.length },
-              { label: "Организаций Холдинга", value: orgCount },
-              { label: "Проектов на карте", value: projectCount },
-              { label: "Регионов охвата", value: regionCount },
+              { label: t(locale, "statServices"), value: services.length },
+              { label: t(locale, "statOrgs"), value: orgCount },
+              { label: t(locale, "statProjects"), value: projectCount },
+              { label: t(locale, "statRegions"), value: regionCount },
             ].map((s) => (
               <div key={s.label}>
                 <dt className="text-3xl font-bold">{s.value}+</dt>
@@ -70,19 +75,14 @@ export default async function HomePage() {
 
       {/* How it works */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-semibold text-slate-900">Как это работает</h2>
+        <h2 className="text-2xl font-semibold text-slate-900">{t(locale, "howItWorksTitle")}</h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            ["1", "Найдите услугу", "Через поиск, каталог, категории или AI-помощника"],
-            ["2", "Подайте заявку", "Понятный пошаговый сценарий вместо длинной анкеты"],
-            ["3", "Отслеживайте статус", "В личном кабинете — статусы, документы, уведомления"],
-            ["4", "Получите результат", "Решение и сопровождение до полного завершения услуги"],
-          ].map(([n, t, d]) => (
+          {howItWorks.map(([n, title, d]) => (
             <div key={n} className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
               <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-brand/10 font-semibold text-brand">
                 {n}
               </div>
-              <h3 className="font-medium text-slate-900">{t}</h3>
+              <h3 className="font-medium text-slate-900">{title}</h3>
               <p className="mt-1 text-sm text-slate-500">{d}</p>
             </div>
           ))}
@@ -91,15 +91,15 @@ export default async function HomePage() {
 
       {/* Categories */}
       <section className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-semibold text-slate-900">Направления поддержки</h2>
+        <h2 className="text-2xl font-semibold text-slate-900">{t(locale, "directionsTitle")}</h2>
         <div className="mt-6 flex flex-wrap gap-3">
           {categories.map((c) => (
             <Link
               key={c}
               href={`/services?category=${encodeURIComponent(c)}`}
-              className="rounded-full border border-brand/20 bg-brand/5 px-4 py-2 text-sm font-medium text-brand hover:bg-brand/10"
+              className="whitespace-nowrap rounded-full border border-brand/20 bg-brand/5 px-4 py-2 text-sm font-medium text-brand hover:bg-brand/10"
             >
-              {c}
+              {pickCategory(c, locale)}
             </Link>
           ))}
         </div>
@@ -108,9 +108,9 @@ export default async function HomePage() {
       {/* Featured control-case services */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-slate-900">Популярные услуги</h2>
-          <Link href="/services" className="text-sm font-medium text-brand hover:underline">
-            Все услуги →
+          <h2 className="text-2xl font-semibold text-slate-900">{t(locale, "popularTitle")}</h2>
+          <Link href="/services" className="whitespace-nowrap text-sm font-medium text-brand hover:underline">
+            {t(locale, "allServices")} →
           </Link>
         </div>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
@@ -126,9 +126,11 @@ export default async function HomePage() {
               >
                 {s.organization.shortName}
               </span>
-              <h3 className="mt-3 text-lg font-semibold text-slate-900 group-hover:text-brand">{s.name}</h3>
-              <p className="mt-1 text-sm text-slate-500">{s.shortDescription}</p>
-              <span className="mt-4 inline-block text-sm font-medium text-brand">Подать заявку →</span>
+              <h3 className="mt-3 text-lg font-semibold text-slate-900 group-hover:text-brand">
+                {pickLocalized(s.name, s.nameKk, locale)}
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">{pickLocalized(s.shortDescription, s.shortDescriptionKk, locale)}</p>
+              <span className="mt-4 inline-block text-sm font-medium text-brand">{t(locale, "applyNow")} →</span>
             </Link>
           ))}
         </div>
@@ -137,17 +139,17 @@ export default async function HomePage() {
       {/* Cross-links to other MVP blocks */}
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="grid gap-6 sm:grid-cols-3">
-          <Link href="/analytics" className="rounded-2xl bg-white p-6 shadow-sm border border-black/5 hover:shadow-md">
-            <h3 className="font-semibold text-slate-900">Аналитическая отчетность</h3>
-            <p className="mt-1 text-sm text-slate-500">Дашборды и отчеты дочерних организаций Холдинга</p>
+          <Link href="/analytics" className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm hover:shadow-md">
+            <h3 className="font-semibold text-slate-900">{t(locale, "analyticsCardTitle")}</h3>
+            <p className="mt-1 text-sm text-slate-500">{t(locale, "analyticsCardBody")}</p>
           </Link>
-          <Link href="/map" className="rounded-2xl bg-white p-6 shadow-sm border border-black/5 hover:shadow-md">
-            <h3 className="font-semibold text-slate-900">Карта проектов</h3>
-            <p className="mt-1 text-sm text-slate-500">Проекты, профинансированные группой Холдинга, на карте Казахстана</p>
+          <Link href="/map" className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm hover:shadow-md">
+            <h3 className="font-semibold text-slate-900">{t(locale, "mapCardTitle")}</h3>
+            <p className="mt-1 text-sm text-slate-500">{t(locale, "mapCardBody")}</p>
           </Link>
-          <Link href="/tools" className="rounded-2xl bg-white p-6 shadow-sm border border-black/5 hover:shadow-md">
-            <h3 className="font-semibold text-slate-900">Инструменты для бизнеса</h3>
-            <p className="mt-1 text-sm text-slate-500">База знаний, шаблоны, чек-листы и калькуляторы</p>
+          <Link href="/tools" className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm hover:shadow-md">
+            <h3 className="font-semibold text-slate-900">{t(locale, "toolsCardTitle")}</h3>
+            <p className="mt-1 text-sm text-slate-500">{t(locale, "toolsCardBody")}</p>
           </Link>
         </div>
       </section>

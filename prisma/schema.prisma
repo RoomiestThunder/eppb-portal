@@ -109,6 +109,7 @@ model ServiceStage {
   service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   order       Int
   title       String
+  titleKk     String?
   description String   @default("")
   steps       ServiceStep[]
 }
@@ -120,6 +121,7 @@ model ServiceStep {
   stage       ServiceStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
   order       Int
   title       String
+  titleKk     String?
   description String   @default("")
   fields      FormField[]
 }
@@ -264,12 +266,14 @@ model Project {
 // ---------- Useful materials / tools for entrepreneurs ----------
 
 model ResourceItem {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  category    String   // knowledge_base | template | checklist | calculator | guide
-  linkUrl     String   @default("#")
-  createdAt   DateTime @default(now())
+  id            String   @id @default(cuid())
+  title         String
+  titleKk       String?
+  description   String
+  descriptionKk String?
+  category      String   // knowledge_base | template | checklist | calculator | guide
+  linkUrl       String   @default("#")
+  createdAt     DateTime @default(now())
 }
 
 // ---------- Mock integration log (proves integration-readiness) ----------

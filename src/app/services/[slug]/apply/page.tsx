@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { toWizardField } from "@/lib/wizardMapper";
 import { decryptString } from "@/lib/crypto";
-import { getLocale, pickLocalized } from "@/lib/i18n";
+import { pickLocalized, t } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
 import ApplicationWizard from "@/components/ApplicationWizard";
 import LoginPrompt from "@/components/LoginPrompt";
 
@@ -26,15 +27,18 @@ export default async function ApplyPage({ params }: { params: Promise<{ slug: st
   if (!service) notFound();
 
   if (!session || session.role !== "CLIENT") {
+    const localizedName = pickLocalized(service.name, service.nameKk, locale);
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <h1 className="text-xl font-semibold text-slate-900">Нужно войти как предприниматель</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t(locale, "loginRequiredTitle")}</h1>
         <p className="mt-2 text-slate-500">
-          Для подачи заявки на услугу «{service.name}» выполните вход через демо-имитацию eGov IDP.
+          {locale === "kk"
+            ? `«${localizedName}» қызметіне өтінім беру үшін eGov IDP демо-имитациясы арқылы кіріңіз.`
+            : `Для подачи заявки на услугу «${localizedName}» выполните вход через демо-имитацию eGov IDP.`}
         </p>
         <LoginPrompt />
         <Link href={`/services/${slug}`} className="mt-4 inline-block text-sm text-brand hover:underline">
-          ← Назад к услуге
+          ← {t(locale, "backToService")}
         </Link>
       </div>
     );
@@ -63,10 +67,10 @@ export default async function ApplyPage({ params }: { params: Promise<{ slug: st
         serviceId={service.id}
         serviceSlug={service.slug}
         serviceName={pickLocalized(service.name, service.nameKk, locale)}
-        stageTitle={`Этап 1. ${stage.title}`}
+        stageTitle={`${t(locale, "stage1Prefix")} ${pickLocalized(stage.title, stage.titleKk, locale)}`}
         steps={stage.steps.map((s) => ({
           id: s.id,
-          title: s.title,
+          title: pickLocalized(s.title, s.titleKk, locale),
           description: s.description,
           fields: s.fields.map((f) => toWizardField(f, locale)),
         }))}
