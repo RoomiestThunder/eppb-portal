@@ -4,24 +4,25 @@ import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import type { Session } from "@/lib/session";
 import { ADMIN_ROLES, type Role } from "@/lib/roles";
+import { t, type Locale } from "@/lib/i18n";
 
-const ROLE_LABELS: Record<Role, string> = {
-  CLIENT: "Предприниматель",
-  SUPERADMIN: "Суперадминистратор",
-  ORG_ADMIN: "Администратор ДО",
-  AUTHOR: "Автор услуг",
-  ANALYST: "Аналитик",
+const ROLE_LABEL_KEY: Record<Role, "roleClient" | "roleSuperadmin" | "roleOrgAdmin" | "roleAuthor" | "roleAnalyst"> = {
+  CLIENT: "roleClient",
+  SUPERADMIN: "roleSuperadmin",
+  ORG_ADMIN: "roleOrgAdmin",
+  AUTHOR: "roleAuthor",
+  ANALYST: "roleAnalyst",
 };
 
-const LOGIN_OPTIONS: { role: Role; label: string }[] = [
-  { role: "CLIENT", label: "Войти как предприниматель" },
-  { role: "AUTHOR", label: "Войти как автор услуг" },
-  { role: "ORG_ADMIN", label: "Войти как администратор ДО" },
-  { role: "SUPERADMIN", label: "Войти как суперадминистратор" },
-  { role: "ANALYST", label: "Войти как аналитик (только чтение)" },
+const LOGIN_OPTIONS: { role: Role; ru: string; kk: string }[] = [
+  { role: "CLIENT", ru: "Войти как предприниматель", kk: "Кәсіпкер ретінде кіру" },
+  { role: "AUTHOR", ru: "Войти как автор услуг", kk: "Қызмет авторы ретінде кіру" },
+  { role: "ORG_ADMIN", ru: "Войти как администратор ДО", kk: "ЕҰ әкімшісі ретінде кіру" },
+  { role: "SUPERADMIN", ru: "Войти как суперадминистратор", kk: "Супер әкімші ретінде кіру" },
+  { role: "ANALYST", ru: "Войти как аналитик (только чтение)", kk: "Аналитик ретінде кіру (тек оқу)" },
 ];
 
-export default function RoleSwitcher({ session }: { session: Session | null }) {
+export default function RoleSwitcher({ session, locale = "ru" }: { session: Session | null; locale?: Locale }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,14 +60,17 @@ export default function RoleSwitcher({ session }: { session: Session | null }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-sm text-white hover:bg-white/20 transition"
+        className="flex max-w-[9rem] items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-sm text-white transition hover:bg-white/20 sm:max-w-[14rem]"
       >
-        <span className="h-2 w-2 rounded-full bg-emerald-400" />
-        {session ? `${session.fullName} · ${ROLE_LABELS[session.role]}` : "Войти (демо eGov IDP)"}
+        <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
+        <span className="truncate">{session ? session.fullName : t(locale, "login")}</span>
       </button>
       {open && (
         <div className="absolute right-0 z-50 mt-2 w-72 rounded-xl border border-black/10 bg-white p-2 text-sm text-slate-800 shadow-xl">
-          <p className="px-2 py-1 text-xs text-slate-400">Демо-вход без реального eGov IDP</p>
+          {session && <p className="px-2 py-1 text-xs font-medium text-brand">{t(locale, ROLE_LABEL_KEY[session.role])}</p>}
+          <p className="px-2 py-1 text-xs text-slate-400">
+            {locale === "kk" ? "Нақты eGov IDP-сіз демо-кіру" : "Демо-вход без реального eGov IDP"}
+          </p>
           {LOGIN_OPTIONS.map((o) => (
             <button
               key={o.role}
@@ -74,12 +78,12 @@ export default function RoleSwitcher({ session }: { session: Session | null }) {
               onClick={() => loginAs(o.role)}
               className="block w-full rounded-lg px-2 py-2 text-left hover:bg-slate-100"
             >
-              {o.label}
+              {locale === "kk" ? o.kk : o.ru}
             </button>
           ))}
           {session && (
             <button onClick={logout} className="mt-1 block w-full rounded-lg px-2 py-2 text-left text-red-600 hover:bg-red-50">
-              Выйти
+              {t(locale, "logout")}
             </button>
           )}
         </div>
