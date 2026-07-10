@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { Sparkles, X, ArrowRight } from "lucide-react";
 import type { Recommendation } from "@/lib/ai";
 
 type Message = { role: "user" | "assistant"; text: string; recommendations?: Recommendation[] };
@@ -50,7 +51,7 @@ export default function AIAssistantWidget() {
           <div className="flex items-center justify-between bg-brand px-4 py-3 text-white">
             <span className="font-medium">AI-помощник ЕППБ</span>
             <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white">
-              ✕
+              <X className="h-4 w-4" strokeWidth={2} />
             </button>
           </div>
           <div className="flex-1 space-y-3 overflow-y-auto p-3">
@@ -91,7 +92,7 @@ export default function AIAssistantWidget() {
               className="flex-1 rounded-full border border-black/10 px-3 py-2 text-sm outline-none focus:border-brand"
             />
             <button onClick={send} className="rounded-full bg-brand px-4 py-2 text-sm text-white hover:bg-brand-dark">
-              →
+              <ArrowRight className="h-4 w-4" strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -101,7 +102,7 @@ export default function AIAssistantWidget() {
         className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-brand-dark shadow-xl transition hover:scale-105"
         aria-label="AI-помощник"
       >
-        <span className="text-2xl">✨</span>
+        <Sparkles className="h-6 w-6" strokeWidth={2} />
       </button>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 
 type DraftField = { key: string; label: string; type: string; required: boolean; hint?: string };
 type DraftStep = { title: string; fields: DraftField[] };
@@ -65,8 +66,11 @@ export default function AiStructureAssistant({
   return (
     <div className="mt-4 rounded-2xl border border-dashed border-brand/30 bg-brand/5 p-5">
       <button onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between text-left">
-        <span className="font-medium text-brand">✨ AI-помощник автора: сгенерировать черновик структуры услуги</span>
-        <span className="text-brand">{open ? "▾" : "▸"}</span>
+        <span className="flex items-center gap-1.5 font-medium text-brand">
+          <Sparkles className="h-4 w-4 shrink-0" strokeWidth={2} />
+          AI-помощник автора: сгенерировать черновик структуры услуги
+        </span>
+        <span className="shrink-0 text-brand">{open ? "▾" : "▸"}</span>
       </button>
       {open && (
         <div className="mt-3">
