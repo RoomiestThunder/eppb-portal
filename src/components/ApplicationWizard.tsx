@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { CircleCheck, CircleAlert, TriangleAlert } from "lucide-react";
+import { CircleCheck, CircleAlert, TriangleAlert, Sparkles } from "lucide-react";
 import { computeVisibleFieldsWithCalculations, type FieldLike } from "@/lib/ruleEngine";
 import { checkApplicationCompleteness } from "@/lib/ai";
 
@@ -220,7 +220,9 @@ export default function ApplicationWizard({
   if (result) {
     return (
       <div className="mx-auto max-w-2xl rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-3xl">✅</div>
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+          <CircleCheck className="h-7 w-7 text-emerald-600" strokeWidth={2} />
+        </div>
         <h2 className="mt-4 text-xl font-semibold text-slate-900">Заявка отправлена</h2>
         <p className="mt-2 text-slate-600">
           Номер заявки: <span className="font-mono font-semibold">{result.number}</span>
@@ -291,8 +293,12 @@ export default function ApplicationWizard({
 
           {stepIndex === steps.length - 1 && (
             <div className="mt-5">
-              <button onClick={runAiCheck} className="rounded-full border border-brand/30 px-4 py-2 text-sm text-brand hover:bg-brand/5">
-                ✨ Проверить заявку с помощью AI
+              <button
+                onClick={runAiCheck}
+                className="flex items-center gap-1.5 rounded-full border border-brand/30 px-4 py-2 text-sm text-brand hover:bg-brand/5"
+              >
+                <Sparkles className="h-4 w-4" strokeWidth={2} />
+                Проверить заявку с помощью AI
               </button>
               {aiIssues && (
                 <div
