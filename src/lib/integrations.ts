@@ -31,7 +31,7 @@ export async function mockEgovIdpLookup(iin: string) {
   try {
     const response = await withResilience("egov_idp", async () => ({
       iin,
-      fullName: "Тестов Тест Тестович",
+      fullName: "Санжар Турсынбаев",
       verified: true,
       source: "eGov IDP (mock)",
     }));

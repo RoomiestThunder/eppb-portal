@@ -135,12 +135,14 @@ async function main() {
           {
             order: 1,
             title: "Первичная заявка",
+            titleKk: "Алғашқы өтінім",
             description: "Основные сведения о заявителе и параметрах лизинга",
             steps: {
               create: [
                 {
                   order: 1,
                   title: "Данные заявителя",
+                  titleKk: "Өтініш беруші деректері",
                   description: "Компания определяется автоматически по БИН (мок eGov)",
                   fields: {
                     create: [
@@ -193,6 +195,7 @@ async function main() {
                 {
                   order: 2,
                   title: "Параметры вагонов",
+                  titleKk: "Вагон параметрлері",
                   description: "Выберите тип и количество подвижного состава",
                   fields: {
                     create: [
@@ -250,6 +253,7 @@ async function main() {
                 {
                   order: 3,
                   title: "Условия лизинга",
+                  titleKk: "Лизинг шарттары",
                   description: "Финансовые параметры сделки",
                   fields: {
                     create: [
@@ -302,6 +306,7 @@ async function main() {
                 {
                   order: 4,
                   title: "Документы",
+                  titleKk: "Құжаттар",
                   description: "Пакет документов для первичного рассмотрения",
                   fields: {
                     create: [
@@ -332,12 +337,14 @@ async function main() {
           {
             order: 2,
             title: "Расширенные данные",
+            titleKk: "Кеңейтілген деректер",
             description: "Запрашивается после первичного рассмотрения заявки",
             steps: {
               create: [
                 {
                   order: 1,
                   title: "Обеспечение и гарантии",
+                  titleKk: "Қамтамасыз ету және кепілдіктер",
                   description: "Дополнительные сведения для одобрения сделки",
                   fields: {
                     create: [
@@ -392,12 +399,14 @@ async function main() {
           {
             order: 1,
             title: "Заявка на субсидию",
+            titleKk: "Субсидияға өтінім",
             description: "Сведения о хозяйстве и поголовье",
             steps: {
               create: [
                 {
                   order: 1,
                   title: "Данные хозяйства",
+                  titleKk: "Шаруашылық деректері",
                   fields: {
                     create: [
                       {
@@ -416,6 +425,7 @@ async function main() {
                 {
                   order: 2,
                   title: "Поголовье и расчет субсидии",
+                  titleKk: "Мал басы және субсидияны есептеу",
                   fields: {
                     create: [
                       {
@@ -478,12 +488,14 @@ async function main() {
           {
             order: 2,
             title: "Расширенные данные",
+            titleKk: "Кеңейтілген деректер",
             description: "Дополнительные документы, запрашиваемые после первичной проверки",
             steps: {
               create: [
                 {
                   order: 1,
                   title: "Подтверждающие документы",
+                  titleKk: "Растайтын құжаттар",
                   fields: {
                     create: [
                       { order: 1, key: "doc_land_ownership", label: "Документ на право пользования землей", type: FieldType.FILE, required: true },
@@ -611,9 +623,9 @@ async function main() {
   const client = await prisma.user.create({
     data: {
       role: "CLIENT",
-      fullName: "Айдос Серіков",
-      iin: "900101300123",
-      bin: "970340000455",
+      fullName: "Санжар Турсынбаев",
+      iin: "000000000000",
+      bin: "900000000000",
       email: "client@demo.kz",
       phone: "+7 701 000 00 01",
     },
@@ -645,8 +657,8 @@ async function main() {
       currentStageOrder: 1,
       data: encryptString(
         JSON.stringify({
-          applicant_bin: "970340000455",
-          farm_name: 'КХ "Серіков и Ко"',
+          applicant_bin: "900000000000",
+          farm_name: 'КХ "Турсынбаев и Ко"',
           region: "akmola",
           livestock_type: "cattle_beef",
           livestock_count: 120,
@@ -800,49 +812,65 @@ async function main() {
     data: [
       {
         title: "Как выбрать меру поддержки: пошаговая инструкция",
+        titleKk: "Қолдау шарасын қалай таңдау керек: қадамдық нұсқаулық",
         description: "База знаний: с чего начать поиск подходящей меры поддержки бизнеса",
+        descriptionKk: "Білім қоры: бизнеске қолайлы қолдау шарасын іздеуді неден бастау керек",
         category: "knowledge_base",
-        linkUrl: "/tools/guide-choose-service",
+        linkUrl: "#guide-choose-service",
       },
       {
         title: "Шаблон бизнес-плана",
+        titleKk: "Бизнес-жоспар үлгісі",
         description: "Универсальный шаблон для подготовки бизнес-плана при подаче заявки на финансирование",
+        descriptionKk: "Қаржыландыруға өтінім берген кезде бизнес-жоспар дайындауға арналған әмбебап үлгі",
         category: "template",
         linkUrl: "#template-business-plan",
       },
       {
         title: "Чек-лист документов для лизинга оборудования",
+        titleKk: "Жабдықты лизингке алуға арналған құжаттар тізбесі",
         description: "Полный перечень документов, которые потребуются при подаче заявки на лизинг",
+        descriptionKk: "Лизингке өтінім берген кезде қажет болатын құжаттардың толық тізбесі",
         category: "checklist",
         linkUrl: "#checklist-leasing-docs",
       },
       {
         title: "Калькулятор лизинговых платежей",
+        titleKk: "Лизинг төлемдерінің калькуляторы",
         description: "Интерактивный калькулятор для предварительного расчета ежемесячного платежа",
+        descriptionKk: "Ай сайынғы төлемді алдын ала есептеуге арналған интерактивті калькулятор",
         category: "calculator",
         linkUrl: "/tools/calculator",
       },
       {
         title: "Обзор мер господдержки АПК на 2026 год",
+        titleKk: "2026 жылға арналған АӨК мемлекеттік қолдау шараларына шолу",
         description: "Аналитический обзор действующих программ субсидирования сельского хозяйства",
+        descriptionKk: "Ауыл шаруашылығын субсидиялаудың қолданыстағы бағдарламаларына аналитикалық шолу",
         category: "knowledge_base",
         linkUrl: "https://bgov.kz/",
       },
       {
         title: "Чек-лист готовности компании к экспорту",
+        titleKk: "Компанияның экспортқа дайындық тізбесі",
         description: "Самопроверка перед подачей заявки на страхование экспортных операций",
+        descriptionKk: "Экспорттық операцияларды сақтандыруға өтінім беру алдында өзін-өзі тексеру",
         category: "checklist",
         linkUrl: "#checklist-export-ready",
       },
       {
         title: "Видео-инструкция: подача заявки через ЕППБ",
+        titleKk: "Бейне нұсқаулық: ЕППБ арқылы өтінім беру",
         description: "Короткое обучающее видео о работе с личным кабинетом и подаче заявки",
+        descriptionKk: "Жеке кабинетпен жұмыс істеу және өтінім беру туралы қысқа оқыту бейнесі",
         category: "guide",
         linkUrl: "#video-guide",
       },
       {
         title: "Калькулятор субсидии на животноводство",
+        titleKk: "Мал шаруашылығына субсидия калькуляторы",
         description: "Быстрая оценка суммы субсидии в зависимости от вида и поголовья скота",
+        descriptionKk: "Мал түрі мен басына байланысты субсидия сомасын жылдам бағалау",
         category: "calculator",
         linkUrl: "/tools/calculator?type=subsidy",
       },

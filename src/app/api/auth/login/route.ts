@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
   if (role === "CLIENT") {
     // demonstrate eGov IDP auth mock on entry to the client journey
-    await mockEgovIdpLookup("900101300123");
+    await mockEgovIdpLookup("000000000000");
   }
 
   const user = await getOrCreateDemoUser(role);

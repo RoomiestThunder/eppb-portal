@@ -61,7 +61,7 @@ describe("checkApplicationCompleteness", () => {
   ];
 
   it("flags missing required fields", () => {
-    const issues = checkApplicationCompleteness(fields, { applicant_bin: "970340000455" });
+    const issues = checkApplicationCompleteness(fields, { applicant_bin: "900000000000" });
     expect(issues.map((i) => i.fieldKey)).toEqual(["wagon_count"]);
   });
 
@@ -93,8 +93,8 @@ describe("suggestServiceStructure", () => {
 
 describe("prepareForExternalLlm", () => {
   it("masks known-sensitive keys before any hypothetical external call", () => {
-    const masked = prepareForExternalLlm({ applicant_bin: "970340000455", wagon_count: 15 });
-    expect(masked.applicant_bin).toBe("********0455");
+    const masked = prepareForExternalLlm({ applicant_bin: "900000000000", wagon_count: 15 });
+    expect(masked.applicant_bin).toBe("********0000");
     expect(masked.wagon_count).toBe(15);
   });
 });
