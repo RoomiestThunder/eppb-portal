@@ -233,7 +233,7 @@ export default function ApplicationWizard({
         <p className="mt-1 text-sm text-slate-500">
           {applicationId ? t(locale, "wizardResultBodyContinued") : t(locale, "wizardResultBodySubmitted")}
         </p>
-        <div className="mt-6 flex justify-center gap-3">
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
           <button onClick={() => router.push("/cabinet")} className="rounded-full bg-brand px-5 py-2.5 text-white hover:bg-brand-dark">
             {t(locale, "wizardGoToCabinet")}
           </button>

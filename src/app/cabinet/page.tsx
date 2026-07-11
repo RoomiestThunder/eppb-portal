@@ -65,7 +65,7 @@ export default async function CabinetPage() {
                       {app.service.organization.shortName} · {t(locale, app.status === "DRAFT" ? "createdOn" : "submittedOn")}{" "}
                       {app.createdAt.toLocaleDateString("ru-RU")} · {t(locale, "documentsWord")}: {app.documents.length}
                     </span>
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-3">
                       {app.status === "DRAFT" ? (
                         <Link href={`/services/${app.service.slug}/apply`} className="whitespace-nowrap font-medium text-brand hover:underline">
                           {t(locale, "continueDraft")} →
