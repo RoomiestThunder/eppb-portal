@@ -5,7 +5,7 @@ import L from "leaflet";
 import { useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import type { ProjectVM } from "@/components/ProjectMapClient";
-import { t, type Locale } from "@/lib/i18n";
+import { pickIndustry, pickRegion, t, type Locale } from "@/lib/i18n";
 
 const STATUS_LABEL_KEY: Record<string, "statusPlanned" | "statusFinancing" | "statusActive" | "statusCompleted"> = {
   planned: "statusPlanned",
@@ -74,7 +74,7 @@ export default function ProjectMapInner({
           <option value="">{t(locale, "allRegions")}</option>
           {regions.map((r) => (
             <option key={r} value={r}>
-              {r}
+              {pickRegion(r, locale)}
             </option>
           ))}
         </select>
@@ -82,7 +82,7 @@ export default function ProjectMapInner({
           <option value="">{t(locale, "allIndustries")}</option>
           {industries.map((i) => (
             <option key={i} value={i}>
-              {i}
+              {pickIndustry(i, locale)}
             </option>
           ))}
         </select>
@@ -113,8 +113,8 @@ export default function ProjectMapInner({
                     <p className="font-semibold">{p.name}</p>
                     <p className="mt-1 text-xs text-slate-500">{p.organization.shortName}</p>
                     <dl className="mt-2 space-y-0.5 text-xs">
-                      <div>{t(locale, "regionWord")}: {p.region}</div>
-                      <div>{t(locale, "industryWord")}: {p.industry}</div>
+                      <div>{t(locale, "regionWord")}: {pickRegion(p.region, locale)}</div>
+                      <div>{t(locale, "industryWord")}: {pickIndustry(p.industry, locale)}</div>
                       <div>{t(locale, "amountWord")}: {formatAmount(p.amount, p.currency)}</div>
                       <div>{t(locale, "periodWord")}: {p.periodStart}–{p.periodEnd}</div>
                       <div>{t(locale, "statusWord")}: {t(locale, STATUS_LABEL_KEY[p.status])}</div>
@@ -133,7 +133,7 @@ export default function ProjectMapInner({
             {byRegion.map(([r, count]) => (
               <div key={r}>
                 <div className="flex justify-between text-xs text-slate-500">
-                  <span>{r}</span>
+                  <span>{pickRegion(r, locale)}</span>
                   <span>{count}</span>
                 </div>
                 <div className="mt-0.5 h-2 rounded-full bg-slate-100">

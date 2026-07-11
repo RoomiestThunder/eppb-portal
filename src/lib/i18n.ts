@@ -453,3 +453,43 @@ export function pickCategory(category: string, locale: Locale): string {
   if (locale === "kk") return CATEGORY_KK[category] ?? category;
   return category;
 }
+
+// Project.region / Project.industry are also free-text (no *Kk columns) — same fixed-set
+// static-dictionary approach as categories above.
+const REGION_KK: Record<string, string> = {
+  "Актюбинская область": "Ақтөбе облысы",
+  "Алматинская область": "Алматы облысы",
+  "Атырауская область": "Атырау облысы",
+  "Восточно-Казахстанская область": "Шығыс Қазақстан облысы",
+  "Жамбылская область": "Жамбыл облысы",
+  "Карагандинская область": "Қарағанды облысы",
+  "Костанайская область": "Қостанай облысы",
+  "Кызылординская область": "Қызылорда облысы",
+  "Мангистауская область": "Маңғыстау облысы",
+  "Павлодарская область": "Павлодар облысы",
+  "Северо-Казахстанская область": "Солтүстік Қазақстан облысы",
+  "Туркестанская область": "Түркістан облысы",
+  "г. Астана": "Астана қ.",
+  "г. Алматы": "Алматы қ.",
+  "г. Шымкент": "Шымкент қ.",
+};
+
+const INDUSTRY_KK: Record<string, string> = {
+  "Животноводство": "Мал шаруашылығы",
+  "Легкая промышленность": "Жеңіл өнеркәсіп",
+  "Логистика": "Логистика",
+  "Пищевая промышленность": "Тамақ өнеркәсібі",
+  "Промышленность": "Өнеркәсіп",
+  "Сельское хозяйство": "Ауыл шаруашылығы",
+  "Транспорт": "Көлік",
+};
+
+export function pickRegion(region: string, locale: Locale): string {
+  if (locale === "kk") return REGION_KK[region] ?? region;
+  return region;
+}
+
+export function pickIndustry(industry: string, locale: Locale): string {
+  if (locale === "kk") return INDUSTRY_KK[industry] ?? industry;
+  return industry;
+}
