@@ -159,6 +159,7 @@ const UI_STRINGS = {
     allStatuses: "Все статусы",
     foundCount: "Найдено",
     projectsByRegion: "Проекты по регионам",
+    moreRegions: (n: number) => `и ещё ${n} ${n === 1 ? "регион" : n < 5 ? "региона" : "регионов"}`,
     loadingMap: "Загрузка карты…",
     noDataWord: "Нет данных",
     regionWord: "Регион",
@@ -209,6 +210,8 @@ const UI_STRINGS = {
     backToApplication: "К заявке",
     cabinetLoginTitle: "Личный кабинет предпринимателя",
     cabinetLoginBody: "Войдите, чтобы увидеть свои заявки, документы и уведомления.",
+    mapLoginTitle: "Карта проектов",
+    mapLoginBody: "Войдите, чтобы увидеть карту проектов, профинансированных группой компаний Холдинга «Байтерек».",
     typePortal: "Портал",
     typeReport: "Отчет",
     typeFinancial: "Финансовая отчетность",
@@ -364,6 +367,7 @@ const UI_STRINGS = {
     allStatuses: "Барлық мәртебелер",
     foundCount: "Табылды",
     projectsByRegion: "Өңірлер бойынша жобалар",
+    moreRegions: (n: number) => `тағы ${n} өңір`,
     loadingMap: "Карта жүктелуде…",
     noDataWord: "Деректер жоқ",
     regionWord: "Өңір",
@@ -411,6 +415,8 @@ const UI_STRINGS = {
     backToApplication: "Өтінімге оралу",
     cabinetLoginTitle: "Кәсіпкердің жеке кабинеті",
     cabinetLoginBody: "Өтінімдеріңізді, құжаттарыңызды және хабарламаларыңызды көру үшін кіріңіз.",
+    mapLoginTitle: "Жобалар картасы",
+    mapLoginBody: "«Байтерек» Холдинг тобы қаржыландырған жобалар картасын көру үшін кіріңіз.",
     typePortal: "Портал",
     typeReport: "Есеп",
     typeFinancial: "Қаржылық есептілік",
@@ -435,6 +441,10 @@ export function t(locale: Locale, key: UiStringKey): string {
 
 export function tCatalogCount(locale: Locale, total: number, found: number): string {
   return UI_STRINGS[locale].catalogCount(total, found);
+}
+
+export function tMoreRegions(locale: Locale, n: number): string {
+  return UI_STRINGS[locale].moreRegions(n);
 }
 
 // Service.category is free-text in the DB (no categoryKk column) — the seed data only ever

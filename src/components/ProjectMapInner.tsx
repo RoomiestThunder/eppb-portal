@@ -5,7 +5,12 @@ import L from "leaflet";
 import { useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import type { ProjectVM } from "@/components/ProjectMapClient";
-import { pickIndustry, pickRegion, t, type Locale } from "@/lib/i18n";
+import { pickIndustry, pickRegion, t, tMoreRegions, type Locale } from "@/lib/i18n";
+
+// Region counts are mostly 1-2 per region with this data volume — a full-length bar list of
+// 14+ near-identical rows reads as noise rather than signal. Capping to the top regions and
+// summarizing the rest keeps the panel meaningful regardless of how many regions have projects.
+const MAX_REGION_ROWS = 6;
 
 const STATUS_LABEL_KEY: Record<string, "statusPlanned" | "statusFinancing" | "statusActive" | "statusCompleted"> = {
   planned: "statusPlanned",
@@ -130,7 +135,7 @@ export default function ProjectMapInner({
         <div>
           <h2 className="font-semibold text-slate-900">{t(locale, "projectsByRegion")}</h2>
           <div className="mt-3 space-y-2">
-            {byRegion.map(([r, count]) => (
+            {byRegion.slice(0, MAX_REGION_ROWS).map(([r, count]) => (
               <div key={r}>
                 <div className="flex justify-between text-xs text-slate-500">
                   <span>{pickRegion(r, locale)}</span>
@@ -142,6 +147,9 @@ export default function ProjectMapInner({
               </div>
             ))}
             {byRegion.length === 0 && <p className="text-sm text-slate-400">{t(locale, "noDataWord")}</p>}
+            {byRegion.length > MAX_REGION_ROWS && (
+              <p className="pt-1 text-xs text-slate-400">{tMoreRegions(locale, byRegion.length - MAX_REGION_ROWS)}</p>
+            )}
           </div>
         </div>
       </div>
