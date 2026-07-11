@@ -44,6 +44,7 @@ export default function FieldEditorRow({
   availableFields,
   lookupCodes,
   fieldTypes,
+  readOnly = false,
   onSave,
   onDelete,
 }: {
@@ -51,6 +52,7 @@ export default function FieldEditorRow({
   availableFields: { id: string; key: string; label: string }[];
   lookupCodes: { code: string; name: string }[];
   fieldTypes: string[];
+  readOnly?: boolean;
   onSave: (data: Record<string, unknown>) => void;
   onDelete: () => void;
 }) {
@@ -88,11 +90,13 @@ export default function FieldEditorRow({
         </button>
         <input
           defaultValue={field.label}
+          disabled={readOnly}
           onBlur={(e) => e.target.value !== field.label && onSave({ label: e.target.value })}
           className="flex-1 rounded-lg border border-transparent px-2 py-1 text-sm font-medium hover:border-black/10 focus:border-brand"
         />
         <select
           defaultValue={field.type}
+          disabled={readOnly}
           onChange={(e) => onSave({ type: e.target.value })}
           className="rounded-lg border border-black/10 px-2 py-1 text-xs"
         >
@@ -103,12 +107,14 @@ export default function FieldEditorRow({
           ))}
         </select>
         <label className="flex items-center gap-1 text-xs text-slate-500">
-          <input type="checkbox" defaultChecked={field.required} onChange={(e) => onSave({ required: e.target.checked })} />
+          <input type="checkbox" disabled={readOnly} defaultChecked={field.required} onChange={(e) => onSave({ required: e.target.checked })} />
           обязат.
         </label>
-        <button onClick={onDelete} className="text-xs text-red-400 hover:text-red-600">
-          ✕
-        </button>
+        {!readOnly && (
+          <button onClick={onDelete} className="text-xs text-red-400 hover:text-red-600">
+            ✕
+          </button>
+        )}
       </div>
 
       {expanded && (
@@ -118,6 +124,7 @@ export default function FieldEditorRow({
               <label className="mb-1 block text-xs text-slate-400">Machine key (переменная)</label>
               <input
                 defaultValue={field.key}
+                disabled={readOnly}
                 onBlur={(e) => e.target.value !== field.key && onSave({ key: e.target.value })}
                 className="w-full rounded-lg border border-black/10 px-2 py-1.5 font-mono text-xs"
               />
@@ -126,6 +133,7 @@ export default function FieldEditorRow({
               <label className="mb-1 block text-xs text-slate-400">Подсказка (hint) для пользователя</label>
               <input
                 defaultValue={field.hint}
+                disabled={readOnly}
                 onBlur={(e) => e.target.value !== field.hint && onSave({ hint: e.target.value })}
                 className="w-full rounded-lg border border-black/10 px-2 py-1.5 text-xs"
               />
@@ -134,6 +142,7 @@ export default function FieldEditorRow({
               <label className="mb-1 block text-xs text-slate-400">Название поля (қазақша)</label>
               <input
                 defaultValue={field.labelKk ?? ""}
+                disabled={readOnly}
                 onBlur={(e) => e.target.value !== (field.labelKk ?? "") && onSave({ labelKk: e.target.value || null })}
                 placeholder="Аудармасы, көрсетілмесе — орысша нұсқасы"
                 className="w-full rounded-lg border border-black/10 px-2 py-1.5 text-xs italic"
@@ -143,6 +152,7 @@ export default function FieldEditorRow({
               <label className="mb-1 block text-xs text-slate-400">Подсказка (қазақша)</label>
               <input
                 defaultValue={field.hintKk ?? ""}
+                disabled={readOnly}
                 onBlur={(e) => e.target.value !== (field.hintKk ?? "") && onSave({ hintKk: e.target.value || null })}
                 className="w-full rounded-lg border border-black/10 px-2 py-1.5 text-xs italic"
               />
@@ -154,6 +164,7 @@ export default function FieldEditorRow({
               <label className="mb-1 block text-xs text-slate-400">Варианты ответа (через запятую)</label>
               <input
                 defaultValue={optionsArr.join(", ")}
+                disabled={readOnly}
                 onBlur={(e) =>
                   onSave({ options: JSON.stringify(e.target.value.split(",").map((s) => s.trim()).filter(Boolean)) })
                 }
@@ -167,6 +178,7 @@ export default function FieldEditorRow({
               <label className="mb-1 block text-xs text-slate-400">Справочник</label>
               <select
                 defaultValue={field.lookupCode ?? ""}
+                disabled={readOnly}
                 onChange={(e) => onSave({ lookupCode: e.target.value })}
                 className="w-full rounded-lg border border-black/10 px-2 py-1.5 text-xs"
               >
@@ -185,6 +197,7 @@ export default function FieldEditorRow({
               <label className="mb-1 block text-xs text-slate-400">Формула (ссылайтесь на machine key других полей)</label>
               <input
                 defaultValue={field.formula ?? ""}
+                disabled={readOnly}
                 onBlur={(e) => onSave({ formula: e.target.value })}
                 placeholder="round(wagon_count * unit_price)"
                 className="w-full rounded-lg border border-black/10 px-2 py-1.5 font-mono text-xs"
@@ -200,6 +213,7 @@ export default function FieldEditorRow({
                 <input
                   type="number"
                   defaultValue={validationObj.min}
+                  disabled={readOnly}
                   onBlur={(e) => onSave({ validation: JSON.stringify({ ...validationObj, min: e.target.value ? Number(e.target.value) : undefined }) })}
                   className="w-full rounded-lg border border-black/10 px-2 py-1.5 text-xs"
                 />
@@ -209,6 +223,7 @@ export default function FieldEditorRow({
                 <input
                   type="number"
                   defaultValue={validationObj.max}
+                  disabled={readOnly}
                   onBlur={(e) => onSave({ validation: JSON.stringify({ ...validationObj, max: e.target.value ? Number(e.target.value) : undefined }) })}
                   className="w-full rounded-lg border border-black/10 px-2 py-1.5 text-xs"
                 />
@@ -221,6 +236,7 @@ export default function FieldEditorRow({
             <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
               <input
                 type="checkbox"
+                disabled={readOnly}
                 checked={condEnabled}
                 onChange={(e) => {
                   setCondEnabled(e.target.checked);
@@ -234,6 +250,7 @@ export default function FieldEditorRow({
                 <span>Если</span>
                 <select
                   value={condField}
+                  disabled={readOnly}
                   onChange={(e) => {
                     setCondField(e.target.value);
                     saveCondition(true, e.target.value, condOp, condValue);
@@ -248,6 +265,7 @@ export default function FieldEditorRow({
                 </select>
                 <select
                   value={condOp}
+                  disabled={readOnly}
                   onChange={(e) => {
                     setCondOp(e.target.value);
                     saveCondition(true, condField, e.target.value, condValue);
@@ -263,6 +281,7 @@ export default function FieldEditorRow({
                 {!["isEmpty", "isNotEmpty"].includes(condOp) && (
                   <input
                     value={condValue}
+                    disabled={readOnly}
                     onChange={(e) => setCondValue(e.target.value)}
                     onBlur={() => saveCondition(true, condField, condOp, condValue)}
                     placeholder="значение"

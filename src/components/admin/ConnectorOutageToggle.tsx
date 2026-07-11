@@ -10,7 +10,17 @@ const BREAKER_STYLE: Record<string, string> = {
   "half-open": "bg-amber-50 text-amber-700",
 };
 
-export default function ConnectorOutageToggle({ connector, breakerState, simulatedDown }: { connector: string; breakerState: string; simulatedDown: boolean }) {
+export default function ConnectorOutageToggle({
+  connector,
+  breakerState,
+  simulatedDown,
+  readOnly = false,
+}: {
+  connector: string;
+  breakerState: string;
+  simulatedDown: boolean;
+  readOnly?: boolean;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -30,13 +40,15 @@ export default function ConnectorOutageToggle({ connector, breakerState, simulat
       <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${BREAKER_STYLE[breakerState] ?? BREAKER_STYLE.closed}`}>
         {BREAKER_LABEL[breakerState] ?? breakerState}
       </span>
-      <button
-        onClick={toggle}
-        disabled={loading}
-        className={`rounded-full px-3 py-1 text-[11px] font-medium ${simulatedDown ? "bg-red-600 text-white" : "border border-slate-200 text-slate-500 hover:border-red-300 hover:text-red-600"}`}
-      >
-        {simulatedDown ? "Восстановить связь" : "Симулировать сбой"}
-      </button>
+      {!readOnly && (
+        <button
+          onClick={toggle}
+          disabled={loading}
+          className={`rounded-full px-3 py-1 text-[11px] font-medium ${simulatedDown ? "bg-red-600 text-white" : "border border-slate-200 text-slate-500 hover:border-red-300 hover:text-red-600"}`}
+        >
+          {simulatedDown ? "Восстановить связь" : "Симулировать сбой"}
+        </button>
+      )}
     </div>
   );
 }

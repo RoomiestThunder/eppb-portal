@@ -13,6 +13,7 @@ const STATUS_LABEL: Record<string, string> = { DRAFT: "Черновик", PUBLIS
 export default async function ConstructorListPage() {
   const session = await getSession();
   const scoped = session && ORG_SCOPED_ROLES.includes(session.role);
+  const readOnly = session?.role === "ANALYST";
 
   const [services, organizations] = await Promise.all([
     prisma.service.findMany({
@@ -33,7 +34,7 @@ export default async function ConstructorListPage() {
           <h1 className="text-2xl font-bold text-slate-900">Конструктор услуг</h1>
           <p className="mt-1 text-slate-500">No-code сборка карточек, шагов, полей и условий отображения — без разработки.</p>
         </div>
-        <CreateServiceButton organizations={organizations.map((o) => ({ id: o.id, name: o.shortName }))} />
+        {!readOnly && <CreateServiceButton organizations={organizations.map((o) => ({ id: o.id, name: o.shortName }))} />}
       </div>
 
       <div className="mt-8 space-y-3">

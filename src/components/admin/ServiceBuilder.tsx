@@ -54,10 +54,12 @@ export default function ServiceBuilder({
   service,
   organizations,
   lookupCodes,
+  readOnly = false,
 }: {
   service: ServiceT;
   organizations: { id: string; name: string }[];
   lookupCodes: { code: string; name: string }[];
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [activeStageId, setActiveStageId] = useState(service.stages[0]?.id);
@@ -127,17 +129,25 @@ export default function ServiceBuilder({
         ← Все услуги
       </button>
 
+      {readOnly && (
+        <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+          Режим «только чтение» — изменения недоступны для роли «Аналитик».
+        </p>
+      )}
+
       {/* Service meta */}
       <div className="mt-3 rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex-1 space-y-3">
             <input
               defaultValue={service.name}
+              disabled={readOnly}
               onBlur={(e) => e.target.value !== service.name && updateServiceMeta({ name: e.target.value })}
-              className="w-full rounded-lg border border-transparent px-2 py-1 text-xl font-bold text-slate-900 hover:border-black/10 focus:border-brand"
+              className="w-full rounded-lg border border-transparent px-2 py-1 text-xl font-bold text-slate-900 hover:border-black/10 focus:border-brand disabled:text-slate-500"
             />
             <input
               defaultValue={service.nameKk ?? ""}
+              disabled={readOnly}
               onBlur={(e) => e.target.value !== (service.nameKk ?? "") && updateServiceMeta({ nameKk: e.target.value || null })}
               placeholder="Атауы (қазақша, көрсетілмесе — орысша нұсқасы қолданылады)"
               className="w-full rounded-lg border border-transparent px-2 py-1 text-sm italic text-slate-500 hover:border-black/10 focus:border-brand"
@@ -145,12 +155,14 @@ export default function ServiceBuilder({
             <div className="flex flex-wrap gap-3">
               <input
                 defaultValue={service.category}
+                disabled={readOnly}
                 onBlur={(e) => e.target.value !== service.category && updateServiceMeta({ category: e.target.value })}
                 className="rounded-lg border border-black/10 px-2 py-1 text-sm"
                 placeholder="Категория"
               />
               <select
                 defaultValue={service.organizationId}
+                disabled={readOnly}
                 onChange={(e) => updateServiceMeta({ organizationId: e.target.value })}
                 className="rounded-lg border border-black/10 px-2 py-1 text-sm"
               >
@@ -163,6 +175,7 @@ export default function ServiceBuilder({
             </div>
             <textarea
               defaultValue={service.shortDescription}
+              disabled={readOnly}
               onBlur={(e) => e.target.value !== service.shortDescription && updateServiceMeta({ shortDescription: e.target.value })}
               rows={2}
               className="w-full rounded-lg border border-black/10 px-2 py-1 text-sm text-slate-600"
@@ -170,6 +183,7 @@ export default function ServiceBuilder({
             />
             <textarea
               defaultValue={service.shortDescriptionKk ?? ""}
+              disabled={readOnly}
               onBlur={(e) =>
                 e.target.value !== (service.shortDescriptionKk ?? "") && updateServiceMeta({ shortDescriptionKk: e.target.value || null })
               }
@@ -186,21 +200,21 @@ export default function ServiceBuilder({
             >
               {service.status === "PUBLISHED" ? "Опубликовано" : "Черновик"}
             </span>
-            <button onClick={togglePublish} className="rounded-full bg-brand px-4 py-2 text-sm text-white hover:bg-brand-dark">
-              {service.status === "PUBLISHED" ? "Снять с публикации" : "Опубликовать"}
-            </button>
-            <button onClick={deleteService} className="rounded-full border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-              Удалить услугу
-            </button>
+            {!readOnly && (
+              <>
+                <button onClick={togglePublish} className="rounded-full bg-brand px-4 py-2 text-sm text-white hover:bg-brand-dark">
+                  {service.status === "PUBLISHED" ? "Снять с публикации" : "Опубликовать"}
+                </button>
+                <button onClick={deleteService} className="rounded-full border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                  Удалить услугу
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      <AiStructureAssistant
-        serviceId={service.id}
-        stages={service.stages}
-        onApplied={refresh}
-      />
+      {!readOnly && <AiStructureAssistant serviceId={service.id} stages={service.stages} onApplied={refresh} />}
 
       {/* Stages tabs */}
       <div className="mt-6 flex flex-wrap items-center gap-2">
@@ -216,9 +230,11 @@ export default function ServiceBuilder({
             Этап {st.order}. {st.title}
           </button>
         ))}
-        <button onClick={addStage} disabled={busy} className="rounded-full border border-dashed border-slate-300 px-4 py-2 text-sm text-slate-500 hover:border-brand hover:text-brand">
-          + Этап
-        </button>
+        {!readOnly && (
+          <button onClick={addStage} disabled={busy} className="rounded-full border border-dashed border-slate-300 px-4 py-2 text-sm text-slate-500 hover:border-brand hover:text-brand">
+            + Этап
+          </button>
+        )}
       </div>
 
       {activeStage && (
@@ -228,15 +244,19 @@ export default function ServiceBuilder({
             <div className="flex items-center justify-between">
               <input
                 defaultValue={activeStage.title}
+                disabled={readOnly}
                 onBlur={(e) => e.target.value !== activeStage.title && mutate("updateStage", { id: activeStage.id, data: { title: e.target.value } }).then(refresh)}
                 className="w-full rounded-lg border border-transparent px-1 text-sm font-medium hover:border-black/10 focus:border-brand"
               />
-              <button onClick={() => deleteStage(activeStage.id)} className="text-xs text-red-400 hover:text-red-600">
-                удалить
-              </button>
+              {!readOnly && (
+                <button onClick={() => deleteStage(activeStage.id)} className="text-xs text-red-400 hover:text-red-600">
+                  удалить
+                </button>
+              )}
             </div>
             <input
               defaultValue={activeStage.titleKk ?? ""}
+              disabled={readOnly}
               onBlur={(e) =>
                 e.target.value !== (activeStage.titleKk ?? "") &&
                 mutate("updateStage", { id: activeStage.id, data: { titleKk: e.target.value || null } }).then(refresh)
@@ -255,12 +275,14 @@ export default function ServiceBuilder({
                 </button>
               ))}
             </div>
-            <button
-              onClick={() => addStep(activeStage.id)}
-              className="mt-2 w-full rounded-lg border border-dashed border-slate-300 py-2 text-xs text-slate-500 hover:border-brand hover:text-brand"
-            >
-              + Шаг
-            </button>
+            {!readOnly && (
+              <button
+                onClick={() => addStep(activeStage.id)}
+                className="mt-2 w-full rounded-lg border border-dashed border-slate-300 py-2 text-xs text-slate-500 hover:border-brand hover:text-brand"
+              >
+                + Шаг
+              </button>
+            )}
           </div>
 
           {/* Fields editor */}
@@ -269,15 +291,19 @@ export default function ServiceBuilder({
               <div className="flex items-center justify-between gap-3">
                 <input
                   defaultValue={activeStep.title}
+                  disabled={readOnly}
                   onBlur={(e) => e.target.value !== activeStep.title && mutate("updateStep", { id: activeStep.id, data: { title: e.target.value } }).then(refresh)}
                   className="flex-1 rounded-lg border border-transparent px-2 py-1 font-semibold hover:border-black/10 focus:border-brand"
                 />
-                <button onClick={() => deleteStep(activeStep.id)} className="text-xs text-red-400 hover:text-red-600 whitespace-nowrap">
-                  удалить шаг
-                </button>
+                {!readOnly && (
+                  <button onClick={() => deleteStep(activeStep.id)} className="text-xs text-red-400 hover:text-red-600 whitespace-nowrap">
+                    удалить шаг
+                  </button>
+                )}
               </div>
               <input
                 defaultValue={activeStep.titleKk ?? ""}
+                disabled={readOnly}
                 onBlur={(e) =>
                   e.target.value !== (activeStep.titleKk ?? "") &&
                   mutate("updateStep", { id: activeStep.id, data: { titleKk: e.target.value || null } }).then(refresh)
@@ -287,6 +313,7 @@ export default function ServiceBuilder({
               />
               <textarea
                 defaultValue={activeStep.description}
+                disabled={readOnly}
                 onBlur={(e) => e.target.value !== activeStep.description && mutate("updateStep", { id: activeStep.id, data: { description: e.target.value } }).then(refresh)}
                 placeholder="Описание шага (необязательно)"
                 rows={1}
@@ -294,6 +321,7 @@ export default function ServiceBuilder({
               />
               <textarea
                 defaultValue={activeStep.descriptionKk ?? ""}
+                disabled={readOnly}
                 onBlur={(e) =>
                   e.target.value !== (activeStep.descriptionKk ?? "") &&
                   mutate("updateStep", { id: activeStep.id, data: { descriptionKk: e.target.value || null } }).then(refresh)
@@ -311,18 +339,21 @@ export default function ServiceBuilder({
                     availableFields={allFieldsFlat.filter((af) => af.id !== f.id)}
                     lookupCodes={lookupCodes}
                     fieldTypes={FIELD_TYPES}
+                    readOnly={readOnly}
                     onSave={(data) => mutate("updateField", { id: f.id, data }).then(refresh)}
                     onDelete={() => mutate("deleteField", { id: f.id }).then(refresh)}
                   />
                 ))}
               </div>
 
-              <button
-                onClick={() => addField(activeStep.id)}
-                className="mt-4 w-full rounded-xl border border-dashed border-slate-300 py-2.5 text-sm text-slate-500 hover:border-brand hover:text-brand"
-              >
-                + Добавить поле
-              </button>
+              {!readOnly && (
+                <button
+                  onClick={() => addField(activeStep.id)}
+                  className="mt-4 w-full rounded-xl border border-dashed border-slate-300 py-2.5 text-sm text-slate-500 hover:border-brand hover:text-brand"
+                >
+                  + Добавить поле
+                </button>
+              )}
             </div>
           )}
         </div>

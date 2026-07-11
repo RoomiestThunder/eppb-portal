@@ -1,9 +1,12 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
 import ServiceBuilder from "@/components/admin/ServiceBuilder";
 
 export default async function ServiceBuilderPage({ params }: { params: Promise<{ serviceId: string }> }) {
   const { serviceId } = await params;
+  const session = await getSession();
+  const readOnly = session?.role === "ANALYST";
 
   const [service, organizations, lookups] = await Promise.all([
     prisma.service.findUnique({
@@ -27,6 +30,7 @@ export default async function ServiceBuilderPage({ params }: { params: Promise<{
       service={JSON.parse(JSON.stringify(service))}
       organizations={organizations.map((o) => ({ id: o.id, name: o.shortName }))}
       lookupCodes={lookups.map((l) => ({ code: l.code, name: l.name }))}
+      readOnly={readOnly}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
 import { getBreakerStates, getSimulatedOutages } from "@/lib/circuitBreaker";
 import ConnectorOutageToggle from "@/components/admin/ConnectorOutageToggle";
 import OutboxPanel from "@/components/admin/OutboxPanel";
@@ -14,6 +15,9 @@ const CONNECTORS: { code: string; label: string; desc: string }[] = [
 ];
 
 export default async function AdminIntegrationsPage() {
+  const session = await getSession();
+  const readOnly = session?.role === "ANALYST";
+
   const [logs, outboxCounts] = await Promise.all([
     prisma.integrationLog.findMany({ orderBy: { createdAt: "desc" }, take: 60 }),
     Promise.all([
@@ -35,24 +39,34 @@ export default async function AdminIntegrationsPage() {
         Реальная интеграция с гос./корпоративными системами на этапе конкурса не требуется. Ниже — mock-коннекторы,
         симуляция сбоев (retry + circuit breaker), очередь асинхронной передачи в BPM и журнал вызовов.
       </p>
+      <p className="mt-1 text-xs text-slate-400">
+        Нажмите «Симулировать сбой» на любом коннекторе, затем попробуйте связанное действие в клиентской части
+        (например, вход или автозаполнение по БИН) — вызов реально завершится ошибкой, а после нескольких неудачных
+        попыток индикатор коннектора переключится в состояние «circuit open».
+      </p>
 
       <div className="mt-6">
-        <OutboxPanel pending={pending} processed={processed} failed={failed} />
+        <OutboxPanel pending={pending} processed={processed} failed={failed} readOnly={readOnly} />
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {CONNECTORS.map((c) => (
-          <div key={c.code} className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              <span className="text-xs text-slate-400">{counts[c.code] ?? 0} вызовов</span>
+        {CONNECTORS.map((c) => {
+          const state = breakerStates[c.code] ?? "closed";
+          const down = outages.includes(c.code);
+          const dotColor = down || state === "open" ? "bg-red-400" : state === "half-open" ? "bg-amber-400" : "bg-emerald-400";
+          return (
+            <div key={c.code} className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className={`h-2 w-2 rounded-full ${dotColor}`} />
+                <span className="text-xs text-slate-400">{counts[c.code] ?? 0} вызовов</span>
+              </div>
+              <h3 className="mt-2 font-medium text-slate-900">{c.label}</h3>
+              <p className="mt-1 text-xs text-slate-500">{c.desc}</p>
+              <p className="mt-2 font-mono text-[11px] text-slate-300">connector: {c.code} (mock)</p>
+              <ConnectorOutageToggle connector={c.code} breakerState={state} simulatedDown={down} readOnly={readOnly} />
             </div>
-            <h3 className="mt-2 font-medium text-slate-900">{c.label}</h3>
-            <p className="mt-1 text-xs text-slate-500">{c.desc}</p>
-            <p className="mt-2 font-mono text-[11px] text-slate-300">connector: {c.code} (mock)</p>
-            <ConnectorOutageToggle connector={c.code} breakerState={breakerStates[c.code] ?? "closed"} simulatedDown={outages.includes(c.code)} />
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <h2 className="mt-10 text-lg font-semibold text-slate-900">Журнал вызовов (последние 60)</h2>

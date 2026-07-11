@@ -31,10 +31,13 @@ type Action =
   | { action: "updateLookupItem"; payload: { id: string; data: Record<string, unknown> } }
   | { action: "deleteLookupItem"; payload: { id: string } }
   | { action: "createAnalyticsMaterial"; payload: Record<string, unknown> }
+  | { action: "updateAnalyticsMaterial"; payload: { id: string; data: Record<string, unknown> } }
   | { action: "deleteAnalyticsMaterial"; payload: { id: string } }
   | { action: "createProject"; payload: Record<string, unknown> }
+  | { action: "updateProject"; payload: { id: string; data: Record<string, unknown> } }
   | { action: "deleteProject"; payload: { id: string } }
   | { action: "createResourceItem"; payload: Record<string, unknown> }
+  | { action: "updateResourceItem"; payload: { id: string; data: Record<string, unknown> } }
   | { action: "deleteResourceItem"; payload: { id: string } };
 
 class ForbiddenError extends Error {}
@@ -266,6 +269,13 @@ export async function POST(req: NextRequest) {
         await writeAudit(session, "AnalyticsMaterial", item.id, "create", null, item);
         return NextResponse.json({ id: item.id });
       }
+      case "updateAnalyticsMaterial": {
+        const before = await prisma.analyticsMaterial.findUnique({ where: { id: body.payload.id } });
+        assertOrgOwnership(session, before?.organizationId);
+        const after = await prisma.analyticsMaterial.update({ where: { id: body.payload.id }, data: body.payload.data as never });
+        await writeAudit(session, "AnalyticsMaterial", body.payload.id, "update", before, after);
+        return NextResponse.json({ ok: true });
+      }
       case "deleteAnalyticsMaterial": {
         const before = await prisma.analyticsMaterial.findUnique({ where: { id: body.payload.id } });
         assertOrgOwnership(session, before?.organizationId);
@@ -279,6 +289,13 @@ export async function POST(req: NextRequest) {
         await writeAudit(session, "Project", item.id, "create", null, item);
         return NextResponse.json({ id: item.id });
       }
+      case "updateProject": {
+        const before = await prisma.project.findUnique({ where: { id: body.payload.id } });
+        assertOrgOwnership(session, before?.organizationId);
+        const after = await prisma.project.update({ where: { id: body.payload.id }, data: body.payload.data as never });
+        await writeAudit(session, "Project", body.payload.id, "update", before, after);
+        return NextResponse.json({ ok: true });
+      }
       case "deleteProject": {
         const before = await prisma.project.findUnique({ where: { id: body.payload.id } });
         assertOrgOwnership(session, before?.organizationId);
@@ -291,6 +308,12 @@ export async function POST(req: NextRequest) {
         const item = await prisma.resourceItem.create({ data: body.payload as never });
         await writeAudit(session, "ResourceItem", item.id, "create", null, item);
         return NextResponse.json({ id: item.id });
+      }
+      case "updateResourceItem": {
+        const before = await prisma.resourceItem.findUnique({ where: { id: body.payload.id } });
+        const after = await prisma.resourceItem.update({ where: { id: body.payload.id }, data: body.payload.data as never });
+        await writeAudit(session, "ResourceItem", body.payload.id, "update", before, after);
+        return NextResponse.json({ ok: true });
       }
       case "deleteResourceItem": {
         const before = await prisma.resourceItem.findUnique({ where: { id: body.payload.id } });

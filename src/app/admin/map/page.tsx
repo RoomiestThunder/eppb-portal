@@ -5,6 +5,7 @@ import ProjectManager from "@/components/admin/ProjectManager";
 export default async function AdminMapPage() {
   const session = await getSession();
   const scoped = session && ORG_SCOPED_ROLES.includes(session.role);
+  const readOnly = session?.role === "ANALYST";
 
   const [projects, organizations] = await Promise.all([
     prisma.project.findMany({
@@ -22,7 +23,11 @@ export default async function AdminMapPage() {
     <div>
       <h1 className="text-2xl font-bold text-slate-900">Карта проектов</h1>
       <p className="mt-1 text-slate-500">Управление проектами, отображаемыми на публичной интерактивной карте.</p>
-      <ProjectManager projects={JSON.parse(JSON.stringify(projects))} organizations={organizations.map((o) => ({ id: o.id, name: o.shortName }))} />
+      <ProjectManager
+        projects={JSON.parse(JSON.stringify(projects))}
+        organizations={organizations.map((o) => ({ id: o.id, name: o.shortName }))}
+        readOnly={readOnly}
+      />
     </div>
   );
 }

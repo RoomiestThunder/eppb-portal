@@ -5,6 +5,7 @@ import AnalyticsMaterialManager from "@/components/admin/AnalyticsMaterialManage
 export default async function AdminAnalyticsPage() {
   const session = await getSession();
   const scoped = session && ORG_SCOPED_ROLES.includes(session.role);
+  const readOnly = session?.role === "ANALYST";
 
   const [materials, organizations] = await Promise.all([
     prisma.analyticsMaterial.findMany({
@@ -25,6 +26,7 @@ export default async function AdminAnalyticsPage() {
       <AnalyticsMaterialManager
         materials={JSON.parse(JSON.stringify(materials))}
         organizations={organizations.map((o) => ({ id: o.id, name: o.shortName }))}
+        readOnly={readOnly}
       />
     </div>
   );

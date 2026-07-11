@@ -3,7 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function OutboxPanel({ pending, processed, failed }: { pending: number; processed: number; failed: number }) {
+export default function OutboxPanel({
+  pending,
+  processed,
+  failed,
+  readOnly = false,
+}: {
+  pending: number;
+  processed: number;
+  failed: number;
+  readOnly?: boolean;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -30,9 +40,11 @@ export default function OutboxPanel({ pending, processed, failed }: { pending: n
         <span className="text-emerald-700">Обработано: {processed}</span>
         <span className="text-red-600">Ошибок: {failed}</span>
       </div>
-      <button onClick={processNow} disabled={loading} className="mt-3 rounded-full bg-brand px-4 py-2 text-sm text-white hover:bg-brand-dark disabled:opacity-50">
-        {loading ? "Обработка…" : "Обработать очередь сейчас"}
-      </button>
+      {!readOnly && (
+        <button onClick={processNow} disabled={loading} className="mt-3 rounded-full bg-brand px-4 py-2 text-sm text-white hover:bg-brand-dark disabled:opacity-50">
+          {loading ? "Обработка…" : "Обработать очередь сейчас"}
+        </button>
+      )}
       {result && <p className="mt-2 text-xs text-slate-500">{result}</p>}
     </div>
   );

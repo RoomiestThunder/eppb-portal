@@ -14,7 +14,7 @@ async function mutate(action: string, payload: unknown) {
   return res.json();
 }
 
-export default function LookupManager({ lookup }: { lookup: { id: string; code: string; name: string; items: Item[] } }) {
+export default function LookupManager({ lookup, readOnly = false }: { lookup: { id: string; code: string; name: string; items: Item[] }; readOnly?: boolean }) {
   const router = useRouter();
   const [newValue, setNewValue] = useState("");
   const [newLabel, setNewLabel] = useState("");
@@ -52,9 +52,11 @@ export default function LookupManager({ lookup }: { lookup: { id: string; code: 
           <h3 className="font-semibold text-slate-900">{lookup.name}</h3>
           <p className="font-mono text-xs text-slate-400">{lookup.code}</p>
         </div>
-        <button onClick={deleteLookup} className="text-xs text-red-400 hover:text-red-600">
-          удалить справочник
-        </button>
+        {!readOnly && (
+          <button onClick={deleteLookup} className="text-xs text-red-400 hover:text-red-600">
+            удалить справочник
+          </button>
+        )}
       </div>
 
       <ul className="mt-3 max-h-56 space-y-1 overflow-y-auto">
@@ -65,26 +67,31 @@ export default function LookupManager({ lookup }: { lookup: { id: string; code: 
             </span>
             <input
               defaultValue={it.labelKk ?? ""}
+              disabled={readOnly}
               onBlur={(e) => e.target.value !== (it.labelKk ?? "") && updateItemLabelKk(it.id, e.target.value)}
               placeholder="Аудармасы (қазақша)"
               className="min-w-0 flex-1 rounded-md border border-transparent bg-white px-2 py-1 text-xs italic text-slate-500 hover:border-black/10 focus:border-brand"
             />
-            <button onClick={() => deleteItem(it.id)} className="shrink-0 text-xs text-red-400 hover:text-red-600">
-              ✕
-            </button>
+            {!readOnly && (
+              <button onClick={() => deleteItem(it.id)} className="shrink-0 text-xs text-red-400 hover:text-red-600">
+                ✕
+              </button>
+            )}
           </li>
         ))}
         {lookup.items.length === 0 && <p className="text-sm text-slate-400">Нет элементов</p>}
       </ul>
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        <input value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder="value" className="w-24 rounded-lg border border-black/10 px-2 py-1.5 text-xs" />
-        <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="Отображаемое название" className="flex-1 rounded-lg border border-black/10 px-2 py-1.5 text-xs" />
-        <input value={newLabelKk} onChange={(e) => setNewLabelKk(e.target.value)} placeholder="Атауы (қазақша)" className="flex-1 rounded-lg border border-black/10 px-2 py-1.5 text-xs" />
-        <button onClick={addItem} className="rounded-lg bg-brand px-3 py-1.5 text-xs text-white hover:bg-brand-dark">
-          + Добавить
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <input value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder="value" className="w-24 rounded-lg border border-black/10 px-2 py-1.5 text-xs" />
+          <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="Отображаемое название" className="flex-1 rounded-lg border border-black/10 px-2 py-1.5 text-xs" />
+          <input value={newLabelKk} onChange={(e) => setNewLabelKk(e.target.value)} placeholder="Атауы (қазақша)" className="flex-1 rounded-lg border border-black/10 px-2 py-1.5 text-xs" />
+          <button onClick={addItem} className="rounded-lg bg-brand px-3 py-1.5 text-xs text-white hover:bg-brand-dark">
+            + Добавить
+          </button>
+        </div>
+      )}
     </div>
   );
 }
