@@ -45,12 +45,12 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh && chown nextjs:nodejs docker-entrypoint.sh
 
-# /data is where docker-compose.yml mounts the SQLite volume — created with the right ownership
-# here so a fresh named volume (which Docker mounts as an empty, root-owned dir) is actually
-# writable by the non-root `nextjs` user once the volume is attached at container start.
-RUN mkdir -p /data && chown nextjs:nodejs /data
+# /data is where the SQLite volume mounts. Chowning it here only affects this image layer —
+# Docker Compose named volumes copy that ownership in on first mount, but platform-provisioned
+# volumes (e.g. Railway) are independent block storage mounted root-owned regardless of what the
+# image had at that path. Running as root sidesteps the mismatch instead of fighting it.
+RUN mkdir -p /data
 
-USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
