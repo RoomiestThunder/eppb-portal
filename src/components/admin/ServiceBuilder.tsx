@@ -86,7 +86,7 @@ export default function ServiceBuilder({
   async function deleteService() {
     if (!confirm(`Удалить услугу «${service.name}» безвозвратно?`)) return;
     await mutate("deleteService", { id: service.id });
-    router.push("/admin/constructor");
+    router.push("/admin/builder");
   }
 
   async function addStage() {
@@ -123,7 +123,7 @@ export default function ServiceBuilder({
 
   return (
     <div>
-      <button onClick={() => router.push("/admin/constructor")} className="text-sm text-slate-400 hover:text-brand">
+      <button onClick={() => router.push("/admin/builder")} className="text-sm text-slate-400 hover:text-brand">
         ← Все услуги
       </button>
 

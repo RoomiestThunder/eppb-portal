@@ -5,7 +5,7 @@ import LoginPrompt from "@/components/LoginPrompt";
 
 const NAV = [
   { href: "/admin", label: "Обзор" },
-  { href: "/admin/constructor", label: "Конструктор услуг" },
+  { href: "/admin/builder", label: "Конструктор услуг" },
   { href: "/admin/applications", label: "Заявки" },
   { href: "/admin/lookups", label: "Справочники" },
   { href: "/admin/analytics", label: "Аналитика ДО" },

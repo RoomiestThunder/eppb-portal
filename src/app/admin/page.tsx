@@ -11,7 +11,7 @@ export default async function AdminHomePage() {
   ]);
 
   const cards = [
-    { href: "/admin/constructor", title: "Конструктор услуг", desc: "Создание и изменение услуг, форм, шагов, логики без кода", value: servicesCount, label: "услуг" },
+    { href: "/admin/builder", title: "Конструктор услуг", desc: "Создание и изменение услуг, форм, шагов, логики без кода", value: servicesCount, label: "услуг" },
     { href: "/admin/applications", title: "Заявки", desc: "Просмотр и изменение статуса поступивших заявок", value: applicationsCount, label: "заявок" },
     { href: "/admin/lookups", title: "Справочники", desc: "Управление справочными данными для полей конструктора", value: 3, label: "справочника" },
     { href: "/admin/analytics", title: "Аналитическая отчетность", desc: "Каталог отчетов и дашбордов дочерних организаций", value: orgsCount, label: "организаций" },

@@ -23,7 +23,7 @@ export default function CreateServiceButton({ organizations }: { organizations: 
     const data = await res.json();
     setLoading(false);
     setOpen(false);
-    router.push(`/admin/constructor/${data.id}`);
+    router.push(`/admin/builder/${data.id}`);
   }
 
   if (!open) {

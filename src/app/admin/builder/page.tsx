@@ -42,7 +42,7 @@ export default async function ConstructorListPage() {
           return (
             <Link
               key={s.id}
-              href={`/admin/constructor/${s.id}`}
+              href={`/admin/builder/${s.id}`}
               className="flex items-center justify-between rounded-2xl border border-black/5 bg-white p-5 shadow-sm hover:shadow-md"
             >
               <div>
