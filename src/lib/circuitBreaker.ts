@@ -13,8 +13,17 @@ type BreakerRecord = {
 const FAILURE_THRESHOLD = 3;
 const RESET_TIMEOUT_MS = 15_000; // after this long "open", allow one probe request (half-open)
 
-const breakers = new Map<string, BreakerRecord>();
-const simulatedOutages = new Set<string>();
+// Next.js can give route handlers and server-component renders separate module instances
+// (same as the PrismaClient singleton in lib/prisma.ts) - stash state on globalThis so a
+// mutation made via the API route is actually visible from the admin page's render.
+const globalForBreaker = globalThis as unknown as {
+  breakers?: Map<string, BreakerRecord>;
+  simulatedOutages?: Set<string>;
+};
+const breakers = globalForBreaker.breakers ?? new Map<string, BreakerRecord>();
+const simulatedOutages = globalForBreaker.simulatedOutages ?? new Set<string>();
+globalForBreaker.breakers = breakers;
+globalForBreaker.simulatedOutages = simulatedOutages;
 
 function getBreaker(connector: string): BreakerRecord {
   let b = breakers.get(connector);
