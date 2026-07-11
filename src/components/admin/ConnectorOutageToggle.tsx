@@ -35,11 +35,15 @@ export default function ConnectorOutageToggle({
     router.refresh();
   }
 
+  // The breaker only trips to "open" after real calls through it actually fail — right after
+  // toggling the simulation, breakerState is still "closed" even though every next call will
+  // throw. Show that primed-but-not-yet-tripped state explicitly instead of a stale "работает".
+  const label = simulatedDown && breakerState === "closed" ? "симуляция сбоя (ждёт вызова)" : (BREAKER_LABEL[breakerState] ?? breakerState);
+  const style = simulatedDown && breakerState === "closed" ? BREAKER_STYLE.open : (BREAKER_STYLE[breakerState] ?? BREAKER_STYLE.closed);
+
   return (
     <div className="mt-2 flex items-center justify-between">
-      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${BREAKER_STYLE[breakerState] ?? BREAKER_STYLE.closed}`}>
-        {BREAKER_LABEL[breakerState] ?? breakerState}
-      </span>
+      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${style}`}>{label}</span>
       {!readOnly && (
         <button
           onClick={toggle}

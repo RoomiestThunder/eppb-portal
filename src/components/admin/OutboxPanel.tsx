@@ -24,7 +24,11 @@ export default function OutboxPanel({
     const res = await fetch("/api/admin/outbox/process", { method: "POST" });
     const data = await res.json();
     setLoading(false);
-    setResult(`Обработано: ${data.processed}, ошибок: ${data.failed}`);
+    setResult(
+      data.processed === 0 && data.failed === 0
+        ? "Очередь пуста — подайте заявку в клиентской части, чтобы в ней появилось событие."
+        : `Обработано: ${data.processed}, ошибок: ${data.failed}`
+    );
     router.refresh();
   }
 
@@ -34,6 +38,8 @@ export default function OutboxPanel({
       <p className="mt-1 text-xs text-slate-500">
         Заявки не передаются в BPM синхронно — они становятся в очередь, чтобы недоступность BPM не блокировала приём заявок.
         В проде эта очередь — топик Kafka/RabbitMQ; воркер (<code>npm run worker</code>) обрабатывает её в фоне.
+        Очередь пополняется реальными событиями: подайте любую заявку через клиентскую часть портала — здесь появится
+        событие, и после «Обработать очередь сейчас» счётчик «Обработано» вырастет, а в заявке появится статус «На рассмотрении».
       </p>
       <div className="mt-3 flex gap-4 text-sm">
         <span className="text-amber-700">В очереди: {pending}</span>
