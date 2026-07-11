@@ -31,12 +31,12 @@ jobs:
       - name: Prisma migrate + generate (SQLite, ephemeral)
         run: npx prisma migrate deploy
         env:
-          DATABASE_URL: file:./ci.db
+          DATABASE_URL: file:./prisma/ci.db
 
       - name: Build
         run: npm run build
         env:
-          DATABASE_URL: file:./ci.db
+          DATABASE_URL: file:./prisma/ci.db
 
   docker:
     runs-on: ubuntu-latest

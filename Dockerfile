@@ -4,6 +4,9 @@
 
 FROM node:20-slim AS deps
 WORKDIR /app
+# better-sqlite3 (the Prisma driver adapter's native binding) has no prebuilt binary for every
+# platform this image might be built on, so it falls back to compiling from source via node-gyp.
+RUN apt-get update -y && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -12,7 +15,7 @@ WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV DATABASE_URL="file:./dev.db"
+ENV DATABASE_URL="file:./prisma/dev.db"
 RUN npx prisma generate
 RUN npm run build
 
@@ -24,13 +27,16 @@ RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nod
 
 # The Prisma CLI isn't traced into the standalone bundle (it's invoked via a separate process,
 # not imported by app code) — installed explicitly, pinned to match the schema/client version,
-# so migrations can be applied on container start without a network fetch at runtime.
-RUN npm install --no-save prisma@6.19.3
+# so migrations can be applied on container start without a network fetch at runtime. dotenv is
+# a no-op here (env vars come from docker-compose, not a .env file) but prisma.config.ts imports
+# it unconditionally, so it still has to be resolvable.
+RUN npm install --no-save prisma@7.8.0 dotenv@17.4.2
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh && chown nextjs:nodejs docker-entrypoint.sh
 

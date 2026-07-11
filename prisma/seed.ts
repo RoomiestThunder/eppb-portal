@@ -1,7 +1,10 @@
+import "dotenv/config";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient, FieldType } from "../src/generated/prisma";
 import { encryptString } from "../src/lib/crypto";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 
 function cond(field: string, op: string, value?: unknown) {
   return JSON.stringify({ field, op, value });

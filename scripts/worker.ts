@@ -2,6 +2,7 @@
 // Run alongside the web process: `npm run worker`. Polls for pending OutboxEvent rows
 // and processes them; in production, swap this loop for a real broker subscription
 // without changing anything else in the app (see src/lib/outbox.ts).
+import "dotenv/config";
 import { processPendingOutboxEvents } from "../src/lib/outbox";
 import { logger } from "../src/lib/logger";
 
