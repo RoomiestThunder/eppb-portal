@@ -7,6 +7,10 @@ no-code/low-code конструктор услуг, форм и клиентск
 
 Архитектурный подход подробно описан в [architecture.md](./architecture.md).
 
+## Живой стенд
+
+**https://eppb-portal-production.up.railway.app**
+
 ## Что внутри
 
 - Главная страница, каталог и карточка услуги
