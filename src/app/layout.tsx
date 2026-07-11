@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import { getSession } from "@/lib/session";
+import { ADMIN_ROLES } from "@/lib/roles";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 import Link from "next/link";
@@ -47,7 +48,9 @@ export default async function RootLayout({
                 <Link href="/tools" className="whitespace-nowrap hover:text-brand">{t(locale, "tools")}</Link>
                 <Link href="/analytics" className="whitespace-nowrap hover:text-brand">{t(locale, "analytics")}</Link>
                 <Link href="/map" className="whitespace-nowrap hover:text-brand">{t(locale, "map")}</Link>
-                <Link href="/admin" className="whitespace-nowrap hover:text-brand">{t(locale, "admin")}</Link>
+                {session && ADMIN_ROLES.includes(session.role) && (
+                  <Link href="/admin" className="whitespace-nowrap hover:text-brand">{t(locale, "admin")}</Link>
+                )}
               </div>
             </div>
           </div>
