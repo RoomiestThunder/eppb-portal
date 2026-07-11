@@ -8,6 +8,11 @@ WORKDIR /app
 # platform this image might be built on, so it falls back to compiling from source via node-gyp.
 RUN apt-get update -y && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
+# npm ci's postinstall hook runs `prisma generate`, which needs the schema + config present -
+# copied here (ahead of the full `COPY . .` in the builder stage below) so this layer still
+# only invalidates on dependency or schema changes, not on every source file edit.
+COPY prisma/schema.prisma ./prisma/schema.prisma
+COPY prisma.config.ts ./
 RUN npm ci
 
 FROM node:20-slim AS builder
