@@ -223,7 +223,9 @@ model Notification {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   title     String
+  titleKk   String?
   body      String
+  bodyKk    String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }

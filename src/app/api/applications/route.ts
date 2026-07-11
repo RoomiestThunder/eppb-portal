@@ -64,7 +64,9 @@ export async function POST(req: NextRequest) {
       data: {
         userId: existing.userId,
         title: "Расширенные данные приняты",
+        titleKk: "Кеңейтілген деректер қабылданды",
         body: `Дополнительные документы по заявке №${updated.number} переданы на рассмотрение.`,
+        bodyKk: `Өтініш №${updated.number} бойынша қосымша құжаттар қаралуға берілді.`,
       },
     });
 
@@ -178,10 +180,15 @@ export async function POST(req: NextRequest) {
     data: {
       userId: session.userId,
       title: degradedEvents.length === 0 ? "Заявка принята в работу" : "Заявка сохранена",
+      titleKk: degradedEvents.length === 0 ? "Өтініш жұмысқа қабылданды" : "Өтініш сақталды",
       body:
         degradedEvents.length === 0
           ? `Ваша заявка №${number} на услугу «${service.name}» принята и передана на рассмотрение в ${service.organization.shortName}.`
           : `Ваша заявка №${number} сохранена. Часть систем временно недоступна — передача на рассмотрение произойдёт автоматически, отслеживайте статус в личном кабинете.`,
+      bodyKk:
+        degradedEvents.length === 0
+          ? `Сіздің №${number} өтінішіңіз «${service.nameKk ?? service.name}» қызметі бойынша қабылданды және ${service.organization.shortName} ұйымында қаралуға берілді.`
+          : `Сіздің №${number} өтінішіңіз сақталды. Кейбір жүйелер уақытша қолжетімсіз — қарауға беру автоматты түрде орындалады, мәртебені жеке кабинетте қадағалаңыз.`,
     },
   });
 

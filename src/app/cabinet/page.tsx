@@ -104,8 +104,8 @@ export default async function CabinetPage() {
           <div className="mt-4 space-y-3">
             {notifications.map((n) => (
               <div key={n.id} className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-                <p className="text-sm font-medium text-slate-800">{n.title}</p>
-                <p className="mt-1 text-xs text-slate-500">{n.body}</p>
+                <p className="text-sm font-medium text-slate-800">{pickLocalized(n.title, n.titleKk, locale)}</p>
+                <p className="mt-1 text-xs text-slate-500">{pickLocalized(n.body, n.bodyKk, locale)}</p>
                 <p className="mt-2 text-[11px] text-slate-300">{n.createdAt.toLocaleString("ru-RU")}</p>
               </div>
             ))}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession, WRITE_ROLES, ORG_SCOPED_ROLES } from "@/lib/session";
-import { STATUS_LABELS } from "@/lib/statusLabels";
+import { STATUS_LABELS, getStatusLabel } from "@/lib/statusLabels";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -40,7 +40,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     data: {
       userId: app.userId,
       title: "Статус заявки обновлен",
+      titleKk: "Өтініш мәртебесі жаңартылды",
       body: `Заявка №${app.number}: новый статус — ${STATUS_LABELS[status] ?? status}.`,
+      bodyKk: `Өтініш №${app.number}: жаңа мәртебе — ${getStatusLabel(status, "kk")}.`,
     },
   });
 

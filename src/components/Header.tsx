@@ -3,11 +3,17 @@ import Image from "next/image";
 import RoleSwitcher from "@/components/RoleSwitcher";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import MobileNav from "@/components/MobileNav";
+import NotificationBell from "@/components/NotificationBell";
+import { prisma } from "@/lib/prisma";
 import type { Session } from "@/lib/session";
 import { ADMIN_ROLES } from "@/lib/roles";
 import { t, type Locale } from "@/lib/i18n";
 
-export default function Header({ session, locale }: { session: Session | null; locale: Locale }) {
+export default async function Header({ session, locale }: { session: Session | null; locale: Locale }) {
+  // Notifications are only ever created for the applicant (CLIENT) — no point rendering the bell
+  // for admin-side roles, who never receive any.
+  const unreadCount = session?.role === "CLIENT" ? await prisma.notification.count({ where: { userId: session.userId, read: false } }) : 0;
+
   const NAV = [
     { href: "/services", label: t(locale, "catalog") },
     { href: "/analytics", label: t(locale, "analytics") },
@@ -36,6 +42,7 @@ export default function Header({ session, locale }: { session: Session | null; l
         </nav>
         <div className="hidden items-center gap-3 lg:flex">
           <LocaleSwitcher locale={locale} />
+          {session?.role === "CLIENT" && <NotificationBell locale={locale} initialUnread={unreadCount} />}
           {session?.role === "CLIENT" && (
             <Link href="/cabinet" className="whitespace-nowrap rounded-full bg-white/10 px-3 py-1.5 text-sm hover:bg-white/20">
               {t(locale, "cabinet")}
@@ -50,6 +57,7 @@ export default function Header({ session, locale }: { session: Session | null; l
         </div>
         <div className="flex items-center gap-2 lg:hidden">
           <LocaleSwitcher locale={locale} />
+          {session?.role === "CLIENT" && <NotificationBell locale={locale} initialUnread={unreadCount} />}
           <MobileNav nav={NAV} session={session} locale={locale} />
         </div>
       </div>
