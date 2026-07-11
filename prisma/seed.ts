@@ -736,7 +736,9 @@ async function main() {
     data: [
       {
         title: "Годовой отчет Холдинга «Байтерек» 2025",
+        titleKk: "«Байтерек» Холдингінің 2025 жылғы жылдық есебі",
         description: "Консолидированные финансовые показатели группы за 2025 год",
+        descriptionKk: "2025 жылға арналған топтың шоғырландырылған қаржылық көрсеткіштері",
         organizationId: byterek.id,
         materialType: "financial",
         source: "baiterek.gov.kz",
@@ -746,7 +748,9 @@ async function main() {
       },
       {
         title: "Портфель кредитования МСБ",
+        titleKk: "ШОБ кредиттеу портфелі",
         description: "Интерактивный дашборд по выданным кредитам и гарантиям Даму",
+        descriptionKk: "Даму берген кредиттер мен кепілдіктер бойынша интерактивті дашборд",
         organizationId: damu.id,
         materialType: "dashboard",
         source: "damu.kz",
@@ -756,7 +760,9 @@ async function main() {
       },
       {
         title: "Экспортные операции: аналитический обзор",
+        titleKk: "Экспорттық операциялар: аналитикалық шолу",
         description: "Обзор застрахованных экспортных контрактов по странам и отраслям",
+        descriptionKk: "Елдер мен салалар бойынша сақтандырылған экспорттық келісімшарттарға шолу",
         organizationId: kazakhexport.id,
         materialType: "research",
         source: "kazakhexport.kz",
@@ -766,7 +772,9 @@ async function main() {
       },
       {
         title: "Лизинговый портфель БРК-Лизинг",
+        titleKk: "«ҚДБ-Лизинг» лизинг портфелі",
         description: "Интерактивный отчет по объему и структуре лизинговых сделок",
+        descriptionKk: "Лизинг мәмілелерінің көлемі мен құрылымы бойынша интерактивті есеп",
         organizationId: kdb.id,
         materialType: "dashboard",
         source: "kdb.kz",
@@ -776,7 +784,9 @@ async function main() {
       },
       {
         title: "Субсидии АПК: региональный разрез",
+        titleKk: "АӨК субсидиялары: өңірлік қима",
         description: "Финансовая отчетность по субсидированию агросектора в разрезе регионов",
+        descriptionKk: "Өңірлер қимасында агросекторды субсидиялау бойынша қаржылық есептілік",
         organizationId: acc.id,
         materialType: "financial",
         source: "agrocredit.kz",
@@ -786,7 +796,9 @@ async function main() {
       },
       {
         title: "КазАгроФинанс: лизинг сельхозтехники",
+        titleKk: "ҚазАгроҚаржы: ауыл шаруашылығы техникасының лизингі",
         description: "Отчет по объемам профинансированной техники по регионам",
+        descriptionKk: "Өңірлер бойынша қаржыландырылған техника көлемі туралы есеп",
         organizationId: kaf.id,
         materialType: "report",
         source: "kaf.kz",

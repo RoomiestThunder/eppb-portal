@@ -233,7 +233,9 @@ model Notification {
 model AnalyticsMaterial {
   id             String   @id @default(cuid())
   title          String
+  titleKk        String?
   description    String
+  descriptionKk  String?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   materialType   String   // portal | report | financial | research | dashboard

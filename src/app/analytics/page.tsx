@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import AnalyticsCard from "@/components/AnalyticsCard";
-import { t } from "@/lib/i18n";
+import { pickLocalized, t } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 
 export default async function AnalyticsPage({ searchParams }: { searchParams: Promise<{ org?: string }> }) {
@@ -48,8 +48,8 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
             locale={locale}
             material={{
               id: m.id,
-              title: m.title,
-              description: m.description,
+              title: pickLocalized(m.title, m.titleKk, locale),
+              description: pickLocalized(m.description, m.descriptionKk, locale),
               orgName: m.organization.shortName,
               orgColor: m.organization.logoColor,
               typeLabel: t(locale, TYPE_LABEL_KEY[m.materialType] ?? "typePortal"),
