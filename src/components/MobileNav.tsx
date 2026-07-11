@@ -71,7 +71,7 @@ export default function MobileNav({
             )}
           </nav>
           <div className="border-t border-white/10 p-4">
-            <RoleSwitcher session={session} locale={locale} />
+            <RoleSwitcher session={session} locale={locale} variant="mobile" />
           </div>
         </div>
       )}
