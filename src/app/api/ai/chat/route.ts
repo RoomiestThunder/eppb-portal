@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
 
   const services = await prisma.service.findMany({
     where: { status: "PUBLISHED" },
-    select: { id: true, slug: true, name: true, shortDescription: true, category: true, tags: true },
+    select: { id: true, slug: true, name: true, nameKk: true, shortDescription: true, category: true, tags: true },
   });
 
   const faq = answerFaq(message);

@@ -140,6 +140,7 @@ async function main() {
             title: "Первичная заявка",
             titleKk: "Алғашқы өтінім",
             description: "Основные сведения о заявителе и параметрах лизинга",
+            descriptionKk: "Өтініш беруші және лизинг параметрлері туралы негізгі мәліметтер",
             steps: {
               create: [
                 {
@@ -147,6 +148,7 @@ async function main() {
                   title: "Данные заявителя",
                   titleKk: "Өтініш беруші деректері",
                   description: "Компания определяется автоматически по БИН (мок eGov)",
+                  descriptionKk: "Компания БСН бойынша автоматты түрде анықталады (мок eGov)",
                   fields: {
                     create: [
                       {
@@ -174,6 +176,7 @@ async function main() {
                         order: 3,
                         key: "applicant_type",
                         label: "Тип заявителя",
+                        labelKk: "Өтініш беруші түрі",
                         type: FieldType.SELECT,
                         required: true,
                         options: JSON.stringify(["Резидент РК", "Нерезидент"]),
@@ -182,6 +185,7 @@ async function main() {
                         order: 4,
                         key: "contact_phone",
                         label: "Контактный телефон",
+                        labelKk: "Байланыс телефоны",
                         type: FieldType.TEXT,
                         required: true,
                       },
@@ -189,6 +193,7 @@ async function main() {
                         order: 5,
                         key: "contact_email",
                         label: "Электронная почта",
+                        labelKk: "Электрондық пошта",
                         type: FieldType.TEXT,
                         required: true,
                       },
@@ -200,6 +205,7 @@ async function main() {
                   title: "Параметры вагонов",
                   titleKk: "Вагон параметрлері",
                   description: "Выберите тип и количество подвижного состава",
+                  descriptionKk: "Жылжымалы құрамның түрі мен санын таңдаңыз",
                   fields: {
                     create: [
                       {
@@ -258,12 +264,14 @@ async function main() {
                   title: "Условия лизинга",
                   titleKk: "Лизинг шарттары",
                   description: "Финансовые параметры сделки",
+                  descriptionKk: "Мәміленің қаржылық параметрлері",
                   fields: {
                     create: [
                       {
                         order: 1,
                         key: "lease_term_months",
                         label: "Срок лизинга, мес.",
+                        labelKk: "Лизинг мерзімі, ай",
                         type: FieldType.NUMBER,
                         required: true,
                         validation: JSON.stringify({ min: 12, max: 120 }),
@@ -272,6 +280,7 @@ async function main() {
                         order: 2,
                         key: "down_payment_percent",
                         label: "Авансовый платеж, %",
+                        labelKk: "Авансылық төлем, %",
                         type: FieldType.NUMBER,
                         required: true,
                         validation: JSON.stringify({ min: 10, max: 50 }),
@@ -280,6 +289,7 @@ async function main() {
                         order: 3,
                         key: "down_payment_amount",
                         label: "Сумма аванса, тенге",
+                        labelKk: "Аванс сомасы, теңге",
                         type: FieldType.CALCULATED,
                         formula: "round(total_price * down_payment_percent / 100)",
                       },
@@ -287,6 +297,7 @@ async function main() {
                         order: 4,
                         key: "monthly_payment",
                         label: "Ориентировочный ежемесячный платеж, тенге",
+                        labelKk: "Болжамды ай сайынғы төлем, теңге",
                         type: FieldType.CALCULATED,
                         formula: "round((total_price - down_payment_amount) / lease_term_months)",
                       },
@@ -294,12 +305,14 @@ async function main() {
                         order: 5,
                         key: "need_state_support",
                         label: "Требуется государственная поддержка ставки вознаграждения",
+                        labelKk: "Сыйақы мөлшерлемесіне мемлекеттік қолдау қажет",
                         type: FieldType.CHECKBOX,
                       },
                       {
                         order: 6,
                         key: "support_program_notice",
                         label: "Заявка будет также рассмотрена в рамках программы субсидирования ставки вознаграждения Холдинга. Дополнительных действий не требуется.",
+                        labelKk: "Өтінім Холдингтің сыйақы мөлшерлемесін субсидиялау бағдарламасы аясында да қаралады. Қосымша әрекет талап етілмейді.",
                         type: FieldType.INFO,
                         visibilityRule: cond("need_state_support", "eq", "true"),
                       },
@@ -311,14 +324,16 @@ async function main() {
                   title: "Документы",
                   titleKk: "Құжаттар",
                   description: "Пакет документов для первичного рассмотрения",
+                  descriptionKk: "Алғашқы қарау үшін құжаттар топтамасы",
                   fields: {
                     create: [
-                      { order: 1, key: "doc_charter", label: "Устав / учредительные документы", type: FieldType.FILE, required: true },
-                      { order: 2, key: "doc_financials", label: "Финансовая отчетность за последний год", type: FieldType.FILE, required: true },
+                      { order: 1, key: "doc_charter", label: "Устав / учредительные документы", labelKk: "Жарғы / құрылтай құжаттары", type: FieldType.FILE, required: true },
+                      { order: 2, key: "doc_financials", label: "Финансовая отчетность за последний год", labelKk: "Соңғы жылғы қаржылық есептілік", type: FieldType.FILE, required: true },
                       {
                         order: 3,
                         key: "doc_business_plan",
                         label: "Бизнес-план (для крупных партий от 10 вагонов)",
+                        labelKk: "Бизнес-жоспар (10 вагоннан асатын үлкен партиялар үшін)",
                         type: FieldType.FILE,
                         required: true,
                         visibilityRule: cond("wagon_count", "gt", 10),
@@ -327,6 +342,7 @@ async function main() {
                         order: 4,
                         key: "doc_nonresident",
                         label: "Документы нерезидента (апостиль/легализация)",
+                        labelKk: "Резидент емес құжаттары (апостиль/заңдастыру)",
                         type: FieldType.FILE,
                         required: true,
                         visibilityRule: cond("applicant_type", "eq", "Нерезидент"),
@@ -342,6 +358,7 @@ async function main() {
             title: "Расширенные данные",
             titleKk: "Кеңейтілген деректер",
             description: "Запрашивается после первичного рассмотрения заявки",
+            descriptionKk: "Өтінімді алғашқы қараудан кейін сұралады",
             steps: {
               create: [
                 {
@@ -349,21 +366,24 @@ async function main() {
                   title: "Обеспечение и гарантии",
                   titleKk: "Қамтамасыз ету және кепілдіктер",
                   description: "Дополнительные сведения для одобрения сделки",
+                  descriptionKk: "Мәмілені мақұлдау үшін қосымша мәліметтер",
                   fields: {
                     create: [
-                      { order: 1, key: "collateral_description", label: "Описание предлагаемого обеспечения", type: FieldType.TEXTAREA, required: true },
-                      { order: 2, key: "collateral_value", label: "Оценочная стоимость обеспечения, тенге", type: FieldType.NUMBER, required: true },
-                      { order: 3, key: "doc_collateral_valuation", label: "Отчет об оценке обеспечения", type: FieldType.FILE, required: true },
+                      { order: 1, key: "collateral_description", label: "Описание предлагаемого обеспечения", labelKk: "Ұсынылатын қамтамасыз ету сипаттамасы", type: FieldType.TEXTAREA, required: true },
+                      { order: 2, key: "collateral_value", label: "Оценочная стоимость обеспечения, тенге", labelKk: "Қамтамасыз етудің бағаланған құны, теңге", type: FieldType.NUMBER, required: true },
+                      { order: 3, key: "doc_collateral_valuation", label: "Отчет об оценке обеспечения", labelKk: "Қамтамасыз етуді бағалау туралы есеп", type: FieldType.FILE, required: true },
                       {
                         order: 4,
                         key: "additional_guarantee_needed",
                         label: "Требуется дополнительное поручительство третьих лиц",
+                        labelKk: "Үшінші тұлғалардың қосымша кепілдігі қажет",
                         type: FieldType.CHECKBOX,
                       },
                       {
                         order: 5,
                         key: "doc_guarantee_letter",
                         label: "Гарантийное письмо поручителя",
+                        labelKk: "Кепілгердің кепілдік хаты",
                         type: FieldType.FILE,
                         required: true,
                         visibilityRule: cond("additional_guarantee_needed", "eq", "true"),
@@ -404,6 +424,7 @@ async function main() {
             title: "Заявка на субсидию",
             titleKk: "Субсидияға өтінім",
             description: "Сведения о хозяйстве и поголовье",
+            descriptionKk: "Шаруашылық пен мал басы туралы мәліметтер",
             steps: {
               create: [
                 {
@@ -416,6 +437,7 @@ async function main() {
                         order: 1,
                         key: "applicant_bin",
                         label: "БИН/ИИН хозяйства",
+                        labelKk: "Шаруашылықтың БСН/ЖСН",
                         type: FieldType.TEXT,
                         required: true,
                         prefillSource: "egov.bin",
@@ -471,6 +493,7 @@ async function main() {
                         order: 5,
                         key: "has_veterinary_certificate",
                         label: "Имеется ветеринарная справка о состоянии поголовья",
+                        labelKk: "Мал басының жағдайы туралы ветеринарлық анықтама бар",
                         type: FieldType.CHECKBOX,
                         required: true,
                       },
@@ -478,6 +501,7 @@ async function main() {
                         order: 6,
                         key: "doc_veterinary",
                         label: "Ветеринарная справка",
+                        labelKk: "Ветеринарлық анықтама",
                         type: FieldType.FILE,
                         required: true,
                         visibilityRule: cond("has_veterinary_certificate", "eq", "true"),
@@ -493,6 +517,7 @@ async function main() {
             title: "Расширенные данные",
             titleKk: "Кеңейтілген деректер",
             description: "Дополнительные документы, запрашиваемые после первичной проверки",
+            descriptionKk: "Алғашқы тексеруден кейін сұралатын қосымша құжаттар",
             steps: {
               create: [
                 {
@@ -501,9 +526,9 @@ async function main() {
                   titleKk: "Растайтын құжаттар",
                   fields: {
                     create: [
-                      { order: 1, key: "doc_land_ownership", label: "Документ на право пользования землей", type: FieldType.FILE, required: true },
-                      { order: 2, key: "doc_livestock_registry", label: "Выписка из реестра ИЖС/племенного учета", type: FieldType.FILE, required: true },
-                      { order: 3, key: "additional_comment", label: "Дополнительный комментарий", type: FieldType.TEXTAREA, required: false },
+                      { order: 1, key: "doc_land_ownership", label: "Документ на право пользования землей", labelKk: "Жерді пайдалану құқығына құжат", type: FieldType.FILE, required: true },
+                      { order: 2, key: "doc_livestock_registry", label: "Выписка из реестра ИЖС/племенного учета", labelKk: "ШҚС/асыл тұқымды есепке алу тізілімінен үзінді", type: FieldType.FILE, required: true },
+                      { order: 3, key: "additional_comment", label: "Дополнительный комментарий", labelKk: "Қосымша түсініктеме", type: FieldType.TEXTAREA, required: false },
                     ],
                   },
                 },
@@ -519,7 +544,9 @@ async function main() {
   const extraServices: Array<{
     slug: string;
     name: string;
+    nameKk: string;
     shortDescription: string;
+    shortDescriptionKk: string;
     category: string;
     icon: string;
     orgId: string;
@@ -528,7 +555,9 @@ async function main() {
     {
       slug: "working-capital-loan",
       name: "Кредитование пополнения оборотных средств",
+      nameKk: "Айналым қаражатын толықтыруға кредит беру",
       shortDescription: "Льготное кредитование МСБ на пополнение оборотного капитала",
+      shortDescriptionKk: "ШОБ-ты айналым капиталын толықтыруға арналған жеңілдікті кредиттеу",
       category: "Кредитование",
       icon: "Landmark",
       orgId: damu.id,
@@ -537,7 +566,9 @@ async function main() {
     {
       slug: "loan-guarantee",
       name: "Гарантирование по кредиту",
+      nameKk: "Кредит бойынша кепілдік беру",
       shortDescription: "Частичное гарантирование при недостаточности залогового обеспечения",
+      shortDescriptionKk: "Кепіл қамтамасыз етуі жеткіліксіз болған жағдайда ішінара кепілдік беру",
       category: "Гарантирование",
       icon: "ShieldCheck",
       orgId: damu.id,
@@ -546,7 +577,9 @@ async function main() {
     {
       slug: "export-insurance",
       name: "Страхование экспортных операций",
+      nameKk: "Экспорттық операцияларды сақтандыру",
       shortDescription: "Страховая защита экспортных контрактов от коммерческих и политических рисков",
+      shortDescriptionKk: "Экспорттық келісімшарттарды коммерциялық және саяси тәуекелдерден сақтандыру арқылы қорғау",
       category: "Страхование",
       icon: "Ship",
       orgId: kazakhexport.id,
@@ -555,7 +588,9 @@ async function main() {
     {
       slug: "agro-equipment-leasing",
       name: "Лизинг сельхозтехники",
+      nameKk: "Ауыл шаруашылығы техникасының лизингі",
       shortDescription: "Приобретение тракторов и сельхозтехники на условиях лизинга",
+      shortDescriptionKk: "Тракторлар мен ауыл шаруашылығы техникасын лизинг шартымен сатып алу",
       category: "Лизинг",
       icon: "Tractor",
       orgId: kaf.id,
@@ -564,7 +599,9 @@ async function main() {
     {
       slug: "investment-project-financing",
       name: "Инвестиционное кредитование проекта",
+      nameKk: "Жобаны инвестициялық кредиттеу",
       shortDescription: "Долгосрочное финансирование инвестиционных проектов",
+      shortDescriptionKk: "Инвестициялық жобаларды ұзақ мерзімді қаржыландыру",
       category: "Инвестирование",
       icon: "TrendingUp",
       orgId: kdb.id,
@@ -573,7 +610,9 @@ async function main() {
     {
       slug: "business-risk-insurance",
       name: "Страхование предпринимательских рисков",
+      nameKk: "Кәсіпкерлік тәуекелдерді сақтандыру",
       shortDescription: "Страхование имущественных и предпринимательских рисков бизнеса",
+      shortDescriptionKk: "Бизнестің мүліктік және кәсіпкерлік тәуекелдерін сақтандыру",
       category: "Страхование",
       icon: "Shield",
       orgId: qic.id,
@@ -586,8 +625,11 @@ async function main() {
       data: {
         slug: s.slug,
         name: s.name,
+        nameKk: s.nameKk,
         shortDescription: s.shortDescription,
+        shortDescriptionKk: s.shortDescriptionKk,
         fullDescription: s.shortDescription,
+        fullDescriptionKk: s.shortDescriptionKk,
         category: s.category,
         icon: s.icon,
         status: "PUBLISHED",
@@ -599,17 +641,19 @@ async function main() {
             {
               order: 1,
               title: "Заявка",
+              titleKk: "Өтінім",
               steps: {
                 create: [
                   {
                     order: 1,
                     title: "Основные данные",
+                    titleKk: "Негізгі деректер",
                     fields: {
                       create: [
-                        { order: 1, key: "applicant_bin", label: "БИН/ИИН заявителя", type: FieldType.TEXT, required: true, prefillSource: "egov.bin" },
-                        { order: 2, key: "request_description", label: "Краткое описание запроса", type: FieldType.TEXTAREA, required: true },
-                        { order: 3, key: "requested_amount", label: "Запрашиваемая сумма, тенге", type: FieldType.NUMBER, required: true },
-                        { order: 4, key: "doc_main", label: "Основной пакет документов", type: FieldType.FILE, required: true },
+                        { order: 1, key: "applicant_bin", label: "БИН/ИИН заявителя", labelKk: "Өтініш берушінің БСН/ЖСН", type: FieldType.TEXT, required: true, prefillSource: "egov.bin" },
+                        { order: 2, key: "request_description", label: "Краткое описание запроса", labelKk: "Сұраныстың қысқаша сипаттамасы", type: FieldType.TEXTAREA, required: true },
+                        { order: 3, key: "requested_amount", label: "Запрашиваемая сумма, тенге", labelKk: "Сұралатын сома, теңге", type: FieldType.NUMBER, required: true },
+                        { order: 4, key: "doc_main", label: "Основной пакет документов", labelKk: "Негізгі құжаттар топтамасы", type: FieldType.FILE, required: true },
                       ],
                     },
                   },
@@ -863,7 +907,7 @@ async function main() {
       },
       {
         title: "Видео-инструкция: подача заявки через ЕППБ",
-        titleKk: "Бейне нұсқаулық: ЕППБ арқылы өтінім беру",
+        titleKk: "Бейне нұсқаулық: БҚБП арқылы өтінім беру",
         description: "Короткое обучающее видео о работе с личным кабинетом и подаче заявки",
         descriptionKk: "Жеке кабинетпен жұмыс істеу және өтінім беру туралы қысқа оқыту бейнесі",
         category: "guide",

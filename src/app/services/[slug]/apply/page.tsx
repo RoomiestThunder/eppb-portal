@@ -36,7 +36,7 @@ export default async function ApplyPage({ params }: { params: Promise<{ slug: st
             ? `«${localizedName}» қызметіне өтінім беру үшін eGov IDP демо-имитациясы арқылы кіріңіз.`
             : `Для подачи заявки на услугу «${localizedName}» выполните вход через демо-имитацию eGov IDP.`}
         </p>
-        <LoginPrompt />
+        <LoginPrompt locale={locale} />
         <Link href={`/services/${slug}`} className="mt-4 inline-block text-sm text-brand hover:underline">
           ← {t(locale, "backToService")}
         </Link>
@@ -71,13 +71,14 @@ export default async function ApplyPage({ params }: { params: Promise<{ slug: st
         steps={stage.steps.map((s) => ({
           id: s.id,
           title: pickLocalized(s.title, s.titleKk, locale),
-          description: s.description,
+          description: pickLocalized(s.description, s.descriptionKk, locale),
           fields: s.fields.map((f) => toWizardField(f, locale)),
         }))}
         lookups={lookups}
         profile={{ bin: user?.bin ?? null, iin: user?.iin ?? null, fullName: user?.fullName ?? "" }}
         initialData={draft ? (JSON.parse(decryptString(draft.data)) as Record<string, unknown>) : undefined}
         draftId={draft?.id}
+        locale={locale}
       />
     </div>
   );

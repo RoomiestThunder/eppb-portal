@@ -83,7 +83,9 @@ export default async function ServiceCardPage({ params }: { params: Promise<{ sl
               <h3 className="font-medium text-slate-900">
                 {t(locale, "stageWord")} {stage.order}. {pickLocalized(stage.title, stage.titleKk, locale)}
               </h3>
-              {stage.description && <p className="mt-1 text-sm text-slate-500">{stage.description}</p>}
+              {stage.description && (
+                <p className="mt-1 text-sm text-slate-500">{pickLocalized(stage.description, stage.descriptionKk, locale)}</p>
+              )}
               <ol className="mt-4 grid gap-3 sm:grid-cols-2">
                 {stage.steps.map((step) => (
                   <li key={step.id} className="flex items-start gap-3 rounded-xl bg-slate-50 p-3">

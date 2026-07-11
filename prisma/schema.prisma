@@ -103,26 +103,28 @@ model Service {
 
 // A stage = a phase of the client journey, e.g. "Первичная заявка" then "Расширенные данные"
 model ServiceStage {
-  id          String   @id @default(cuid())
-  serviceId   String
-  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  order       Int
-  title       String
-  titleKk     String?
-  description String   @default("")
-  steps       ServiceStep[]
+  id            String   @id @default(cuid())
+  serviceId     String
+  service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  order         Int
+  title         String
+  titleKk       String?
+  description   String   @default("")
+  descriptionKk String?
+  steps         ServiceStep[]
 }
 
 // A step = one screen/page of the wizard within a stage
 model ServiceStep {
-  id          String   @id @default(cuid())
-  stageId     String
-  stage       ServiceStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
-  order       Int
-  title       String
-  titleKk     String?
-  description String   @default("")
-  fields      FormField[]
+  id            String   @id @default(cuid())
+  stageId       String
+  stage         ServiceStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  order         Int
+  title         String
+  titleKk       String?
+  description   String   @default("")
+  descriptionKk String?
+  fields        FormField[]
 }
 
 enum FieldType {

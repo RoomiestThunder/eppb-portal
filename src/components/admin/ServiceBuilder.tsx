@@ -21,8 +21,8 @@ type FieldT = {
   visibilityRule: string | null;
   validation: string | null;
 };
-type StepT = { id: string; order: number; title: string; titleKk: string | null; description: string; fields: FieldT[] };
-type StageT = { id: string; order: number; title: string; titleKk: string | null; description: string; steps: StepT[] };
+type StepT = { id: string; order: number; title: string; titleKk: string | null; description: string; descriptionKk: string | null; fields: FieldT[] };
+type StageT = { id: string; order: number; title: string; titleKk: string | null; description: string; descriptionKk: string | null; steps: StepT[] };
 type ServiceT = {
   id: string;
   slug: string;
@@ -291,6 +291,16 @@ export default function ServiceBuilder({
                 placeholder="Описание шага (необязательно)"
                 rows={1}
                 className="mt-1 w-full rounded-lg border border-transparent px-2 py-1 text-sm text-slate-500 hover:border-black/10 focus:border-brand"
+              />
+              <textarea
+                defaultValue={activeStep.descriptionKk ?? ""}
+                onBlur={(e) =>
+                  e.target.value !== (activeStep.descriptionKk ?? "") &&
+                  mutate("updateStep", { id: activeStep.id, data: { descriptionKk: e.target.value || null } }).then(refresh)
+                }
+                placeholder="Сипаттама (қазақша)"
+                rows={1}
+                className="mt-1 w-full rounded-lg border border-transparent px-2 py-1 text-sm italic text-slate-500 hover:border-black/10 focus:border-brand"
               />
 
               <div className="mt-4 space-y-3">

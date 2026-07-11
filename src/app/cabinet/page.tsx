@@ -16,7 +16,7 @@ export default async function CabinetPage() {
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
         <h1 className="text-xl font-semibold text-slate-900">{t(locale, "cabinetLoginTitle")}</h1>
         <p className="mt-2 text-slate-500">{t(locale, "cabinetLoginBody")}</p>
-        <LoginPrompt />
+        <LoginPrompt locale={locale} />
       </div>
     );
   }

@@ -17,7 +17,7 @@
 import type { Service } from "@/generated/prisma";
 import { maskPayload } from "@/lib/crypto";
 
-export type ServiceForAi = Pick<Service, "id" | "slug" | "name" | "shortDescription" | "category" | "tags">;
+export type ServiceForAi = Pick<Service, "id" | "slug" | "name" | "nameKk" | "shortDescription" | "category" | "tags">;
 
 export type Recommendation = { service: ServiceForAi; score: number; reason: string };
 

@@ -67,7 +67,7 @@ export default async function ContinueApplicationPage({ params }: { params: Prom
           steps={nextStage.steps.map((s) => ({
             id: s.id,
             title: pickLocalized(s.title, s.titleKk, locale),
-            description: s.description,
+            description: pickLocalized(s.description, s.descriptionKk, locale),
             fields: s.fields.map((f) => toWizardField(f, locale)),
           }))}
           lookups={lookups}
@@ -75,6 +75,7 @@ export default async function ContinueApplicationPage({ params }: { params: Prom
           initialData={initialData}
           applicationId={app.id}
           targetStageOrder={nextStage.order}
+          locale={locale}
         />
       </div>
     </div>

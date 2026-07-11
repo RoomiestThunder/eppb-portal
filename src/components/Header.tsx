@@ -23,7 +23,7 @@ export default function Header({ session, locale }: { session: Session | null; l
             <Image src="/brand/baiterek-icon.png" alt="" fill sizes="36px" className="object-contain" />
           </span>
           <span className="leading-tight">
-            <span className="block whitespace-nowrap text-base">ЕППБ</span>
+            <span className="block whitespace-nowrap text-base">{t(locale, "brandAbbr")}</span>
             <span className="hidden whitespace-nowrap text-[11px] font-normal text-white/70 sm:block">{t(locale, "heroTitle")}</span>
           </span>
         </Link>

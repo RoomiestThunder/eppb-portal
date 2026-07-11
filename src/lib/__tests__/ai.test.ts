@@ -16,8 +16,8 @@ import {
 // deterministic, which is what makes that guarantee true rather than accidental.
 
 const services: ServiceForAi[] = [
-  { id: "1", slug: "wagon-leasing", name: "Приобретение вагонов в лизинг", shortDescription: "Финансовый лизинг грузовых вагонов", category: "Лизинг", tags: "лизинг,вагоны,логистика" },
-  { id: "2", slug: "agro-livestock", name: "Субсидирование животноводства", shortDescription: "Возмещение затрат на скот", category: "Субсидирование", tags: "субсидии,агробизнес,животноводство" },
+  { id: "1", slug: "wagon-leasing", name: "Приобретение вагонов в лизинг", nameKk: null, shortDescription: "Финансовый лизинг грузовых вагонов", category: "Лизинг", tags: "лизинг,вагоны,логистика" },
+  { id: "2", slug: "agro-livestock", name: "Субсидирование животноводства", nameKk: null, shortDescription: "Возмещение затрат на скот", category: "Субсидирование", tags: "субсидии,агробизнес,животноводство" },
 ];
 
 describe("recommendServices", () => {

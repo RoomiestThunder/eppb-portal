@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CircleCheck, CircleAlert, TriangleAlert, Sparkles } from "lucide-react";
 import { computeVisibleFieldsWithCalculations, type FieldLike } from "@/lib/ruleEngine";
 import { checkApplicationCompleteness } from "@/lib/ai";
+import { t, type Locale } from "@/lib/i18n";
 
 export type WizardField = FieldLike & {
   label: string;
@@ -30,6 +31,7 @@ export default function ApplicationWizard({
   applicationId,
   targetStageOrder,
   draftId,
+  locale,
 }: {
   serviceId: string;
   serviceSlug: string;
@@ -42,6 +44,7 @@ export default function ApplicationWizard({
   applicationId?: string;
   targetStageOrder?: number;
   draftId?: string; // resuming an autosaved draft for a first-stage (not yet submitted) application
+  locale: Locale;
 }) {
   const router = useRouter();
   const allFields = useMemo(() => steps.flatMap((s) => s.fields), [steps]);
@@ -155,13 +158,13 @@ export default function ApplicationWizard({
       if (!f.required || f.type === "INFO" || f.type === "CALCULATED") continue;
       const v = enrichedData[f.key];
       const empty = v === undefined || v === null || v === "";
-      if (empty) issues.push(`«${f.label}» — обязательное поле`);
+      if (empty) issues.push(`«${f.label}» — ${t(locale, "wizardFieldRequired")}`);
       else if (f.type === "NUMBER") {
         const n = Number(v);
-        if (Number.isNaN(n)) issues.push(`«${f.label}» — должно быть числом`);
+        if (Number.isNaN(n)) issues.push(`«${f.label}» — ${t(locale, "wizardFieldMustBeNumber")}`);
         else {
-          if (f.validation?.min !== undefined && n < f.validation.min) issues.push(`«${f.label}» — минимум ${f.validation.min}`);
-          if (f.validation?.max !== undefined && n > f.validation.max) issues.push(`«${f.label}» — максимум ${f.validation.max}`);
+          if (f.validation?.min !== undefined && n < f.validation.min) issues.push(`«${f.label}» — ${t(locale, "wizardFieldMin")} ${f.validation.min}`);
+          if (f.validation?.max !== undefined && n > f.validation.max) issues.push(`«${f.label}» — ${t(locale, "wizardFieldMax")} ${f.validation.max}`);
         }
       }
     }
@@ -211,7 +214,7 @@ export default function ApplicationWizard({
       const data = await res.json();
       setResult({ number: data.number });
     } catch {
-      setErrors(["Не удалось отправить заявку. Попробуйте ещё раз."]);
+      setErrors([t(locale, "wizardSubmitError")]);
     } finally {
       setSubmitting(false);
     }
@@ -223,19 +226,19 @@ export default function ApplicationWizard({
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
           <CircleCheck className="h-7 w-7 text-emerald-600" strokeWidth={2} />
         </div>
-        <h2 className="mt-4 text-xl font-semibold text-slate-900">Заявка отправлена</h2>
+        <h2 className="mt-4 text-xl font-semibold text-slate-900">{t(locale, "wizardResultTitle")}</h2>
         <p className="mt-2 text-slate-600">
-          Номер заявки: <span className="font-mono font-semibold">{result.number}</span>
+          {t(locale, "wizardResultNumber")} <span className="font-mono font-semibold">{result.number}</span>
         </p>
         <p className="mt-1 text-sm text-slate-500">
-          Заявка передана на рассмотрение{applicationId ? "" : " и подписана ЭЦП (mock)"}. Статус и уведомления доступны в личном кабинете.
+          {applicationId ? t(locale, "wizardResultBodyContinued") : t(locale, "wizardResultBodySubmitted")}
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <button onClick={() => router.push("/cabinet")} className="rounded-full bg-brand px-5 py-2.5 text-white hover:bg-brand-dark">
-            Перейти в личный кабинет
+            {t(locale, "wizardGoToCabinet")}
           </button>
           <button onClick={() => router.push(`/services/${serviceSlug}`)} className="rounded-full border border-slate-300 px-5 py-2.5 text-slate-600 hover:bg-white">
-            К услуге
+            {t(locale, "wizardGoToService")}
           </button>
         </div>
       </div>
@@ -252,10 +255,12 @@ export default function ApplicationWizard({
       </div>
       <p className="mt-2 flex items-center justify-between text-xs text-slate-400">
         <span>
-          Шаг {stepIndex + 1} из {steps.length}
+          {t(locale, "wizardStepOf")} {stepIndex + 1} {t(locale, "wizardStepOfSeparator")} {steps.length}
         </span>
         {!applicationId && draftSavedAt && (
-          <span className="text-emerald-600">Черновик сохранён в {draftSavedAt.toLocaleTimeString("ru-RU")}</span>
+          <span className="text-emerald-600">
+            {t(locale, "wizardDraftSaved")} {draftSavedAt.toLocaleTimeString("ru-RU")}
+          </span>
         )}
       </p>
 
@@ -273,6 +278,7 @@ export default function ApplicationWizard({
                 onChange={(v) => setValue(f.key, v)}
                 onBlurBin={binFieldKeys.includes(f.key) ? () => runBinLookup(String(enrichedData[f.key] ?? "")) : undefined}
                 lookupItems={f.lookupCode ? lookups[f.lookupCode] ?? [] : []}
+                locale={locale}
               />
             ))}
           </div>
@@ -281,7 +287,7 @@ export default function ApplicationWizard({
             <div role="alert" aria-live="polite" className="mt-5 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2} />
               <div>
-                <p className="font-medium">Проверьте, пожалуйста:</p>
+                <p className="font-medium">{t(locale, "wizardCheckFields")}</p>
                 <ul className="mt-1 list-inside list-disc space-y-0.5">
                   {errors.map((e) => (
                     <li key={e}>{e}</li>
@@ -298,7 +304,7 @@ export default function ApplicationWizard({
                 className="flex items-center gap-1.5 rounded-full border border-brand/30 px-4 py-2 text-sm text-brand hover:bg-brand/5"
               >
                 <Sparkles className="h-4 w-4" strokeWidth={2} />
-                Проверить заявку с помощью AI
+                {t(locale, "wizardAiCheck")}
               </button>
               {aiIssues && (
                 <div
@@ -308,7 +314,7 @@ export default function ApplicationWizard({
                   {aiIssues.length === 0 ? (
                     <>
                       <CircleCheck className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2} />
-                      <p>AI-проверка: заявка выглядит полной и готова к отправке.</p>
+                      <p>{t(locale, "wizardAiCheckOk")}</p>
                     </>
                   ) : (
                     <>
@@ -332,15 +338,15 @@ export default function ApplicationWizard({
             disabled={stepIndex === 0}
             className="rounded-full border border-slate-300 px-5 py-2.5 text-slate-600 disabled:opacity-30"
           >
-            Назад
+            {t(locale, "wizardBack")}
           </button>
           {stepIndex < steps.length - 1 ? (
             <button onClick={goNext} className="rounded-full bg-brand px-6 py-2.5 text-white hover:bg-brand-dark">
-              Далее
+              {t(locale, "wizardNext")}
             </button>
           ) : (
             <button onClick={submit} disabled={submitting} className="rounded-full bg-brand px-6 py-2.5 text-white hover:bg-brand-dark disabled:opacity-50">
-              {submitting ? "Отправка…" : "Отправить заявку"}
+              {submitting ? t(locale, "wizardSubmitting") : t(locale, "wizardSubmit")}
             </button>
           )}
         </div>
@@ -355,12 +361,14 @@ function FieldInput({
   onChange,
   onBlurBin,
   lookupItems,
+  locale,
 }: {
   field: WizardField;
   value: unknown;
   onChange: (v: unknown) => void;
   onBlurBin?: () => void;
   lookupItems: { value: string; label: string }[];
+  locale: Locale;
 }) {
   const base = "w-full rounded-xl border border-black/10 px-3.5 py-2.5 outline-none focus:border-brand";
 
@@ -416,7 +424,7 @@ function FieldInput({
       )}
       {field.type === "SELECT" && (
         <select className={base} value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)}>
-          <option value="">Выберите…</option>
+          <option value="">{t(locale, "wizardSelectPlaceholder")}</option>
           {field.options.map((o) => (
             <option key={o} value={o}>
               {o}
@@ -436,7 +444,7 @@ function FieldInput({
       )}
       {field.type === "LOOKUP" && (
         <select className={base} value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)}>
-          <option value="">Выберите…</option>
+          <option value="">{t(locale, "wizardSelectPlaceholder")}</option>
           {lookupItems.map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
@@ -447,7 +455,7 @@ function FieldInput({
       {field.type === "CHECKBOX" && (
         <label className="flex items-center gap-2 text-sm text-slate-700">
           <input type="checkbox" checked={value === true || value === "true"} onChange={(e) => onChange(e.target.checked)} />
-          {field.hint || "Да"}
+          {field.hint || t(locale, "wizardYes")}
         </label>
       )}
       {field.type === "FILE" && (

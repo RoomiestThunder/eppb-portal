@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { t, type Locale } from "@/lib/i18n";
 
-export default function LoginPrompt() {
+export default function LoginPrompt({ locale = "ru" }: { locale?: Locale }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +25,7 @@ export default function LoginPrompt() {
       disabled={loading}
       className="mt-6 rounded-full bg-brand px-6 py-3 font-medium text-white hover:bg-brand-dark disabled:opacity-50"
     >
-      {loading ? "Вход…" : "Войти через eGov IDP (демо)"}
+      {loading ? t(locale, "loginPromptLoading") : t(locale, "loginPromptButton")}
     </button>
   );
 }
