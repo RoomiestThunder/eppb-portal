@@ -37,11 +37,18 @@ RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nod
 # it unconditionally, so it still has to be resolvable.
 RUN npm install --no-save prisma@7.8.0 dotenv@17.4.2
 
+# Full node_modules (incl. devDependencies like tsx) so the one-time `npx prisma db seed` can be
+# run directly in this image later - the standalone output below only bundles what the Next.js
+# server itself traces as used, which doesn't cover an ad-hoc script invoked outside the app.
+COPY --from=deps /app/node_modules ./node_modules
+
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/src/generated ./src/generated
+COPY --from=builder /app/src/lib/crypto.ts ./src/lib/crypto.ts
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh && chown nextjs:nodejs docker-entrypoint.sh
 
